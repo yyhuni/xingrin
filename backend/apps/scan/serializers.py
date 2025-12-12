@@ -54,7 +54,7 @@ class ScanHistorySerializer(serializers.ModelSerializer):
         model = Scan
         fields = [
             'id', 'target', 'target_name', 'engine', 'engine_name', 
-            'created_at', 'status', 'summary', 'progress',
+            'created_at', 'status', 'error_message', 'summary', 'progress',
             'current_stage', 'stage_progress'
         ]
     

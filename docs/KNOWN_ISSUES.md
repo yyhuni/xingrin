@@ -175,6 +175,29 @@ except:  # 应改为 except Exception:
 
 ---
 
+## 💡 代码改进建议（非 Bug）
+
+### 6. 使用通用 Exception 抛出异常
+
+**严重程度**: 🟢 低（代码风格）
+
+**文件**: `backend/apps/scan/services/scan_creation_service.py:297`
+
+**问题描述**: 
+使用 `raise Exception(message)` 抛出通用异常，不利于异常类型区分和处理。
+
+```python
+# 当前写法
+raise Exception(message)
+
+# 建议写法
+raise RuntimeError(message)  # 或定义专用异常类
+```
+
+**修复状态**: ⏳ 建议优化
+
+---
+
 ## 🔍 后续建议
 
 1. **添加类型检查**: 使用 `mypy` 进行静态类型检查

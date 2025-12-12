@@ -54,6 +54,7 @@ export interface ScanRecord {
   engineName: string           // 引擎名称（对应后端 engineName）
   createdAt: string            // 创建时间（对应后端 createdAt）
   status: ScanStatus
+  errorMessage?: string        // 错误信息（对应后端 errorMessage，失败时有值）
   progress: number             // 0-100
   currentStage?: ScanStage     // 当前扫描阶段（仅 running 状态有值）
   stageProgress?: StageProgress // 各阶段进度详情

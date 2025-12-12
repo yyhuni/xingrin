@@ -64,6 +64,7 @@ export interface ScanProgressData {
   progress: number
   currentStage?: ScanStage
   startedAt?: string
+  errorMessage?: string  // 错误信息（失败时有值）
   stages: StageDetail[]
 }
 
@@ -240,6 +241,13 @@ export function ScanProgressDialog({
             <span className="text-muted-foreground">状态</span>
             <ScanStatusBadge status={data.status} />
           </div>
+          {/* 错误信息（失败时显示） */}
+          {data.errorMessage && (
+            <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-destructive font-medium">错误原因</p>
+              <p className="text-sm text-destructive/80 mt-1 break-words">{data.errorMessage}</p>
+            </div>
+          )}
         </div>
 
         <Separator />
@@ -374,6 +382,7 @@ export function buildScanProgressData(scan: ScanRecord): ScanProgressData {
     progress: scan.progress,
     currentStage: scan.currentStage,
     startedAt: scan.createdAt,
+    errorMessage: scan.errorMessage,
     stages,
   }
 }

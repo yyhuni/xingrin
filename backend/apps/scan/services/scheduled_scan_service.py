@@ -257,19 +257,17 @@ class ScheduledScanService:
         
         for scheduled_scan in due_scans:
             try:
-                # 触发扫描
-                self._trigger_scan_now(scheduled_scan)
-                
-                # 更新执行记录
-                self.repo.increment_run_count(scheduled_scan.id)
-                
-                # 计算并更新下次执行时间
+                # 1. 先计算并更新下次执行时间（防止重复触发）
+                # 这样即使触发过程耗时较长，下一次 APScheduler 调用也不会再次查询到这个任务
                 cron = croniter(scheduled_scan.cron_expression, now)
                 next_run = cron.get_next(datetime)
+                self.repo.update_next_run_time(scheduled_scan.id, next_run)
                 
-                scheduled_scan.last_run_time = now
-                scheduled_scan.next_run_time = next_run
-                scheduled_scan.save(update_fields=['last_run_time', 'next_run_time'])
+                # 2. 触发扫描
+                self._trigger_scan_now(scheduled_scan)
+                
+                # 3. 更新执行记录（run_count + 1, last_run_time = now）
+                self.repo.increment_run_count(scheduled_scan.id)
                 
                 triggered_count += 1
                 logger.info(
@@ -282,6 +280,8 @@ class ScheduledScanService:
                     "定时扫描触发失败 - ID: %s, Error: %s",
                     scheduled_scan.id, e
                 )
+                # 注意：即使触发失败，next_run_time 已更新，任务会在下次计划时间重试
+                # 这是合理的行为：避免失败任务被无限重试
         
         return triggered_count
     
