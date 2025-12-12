@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/light.png" alt="Light Mode" width="49%">
-  <img src="docs/dark.png" alt="Dark Mode" width="49%">
+  <img src="docs/screenshots/light.png" alt="Light Mode" width="49%">
+  <img src="docs/screenshots/dark.png" alt="Dark Mode" width="49%">
 </p>
 
 <p align="center">
@@ -19,9 +19,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/bubblegum.png" alt="Bubblegum" width="32%">
-  <img src="docs/cosmic-night.png" alt="Cosmic Night" width="32%">
-  <img src="docs/quantum-rose.png" alt="Quantum Rose" width="32%">
+  <img src="docs/screenshots/bubblegum.png" alt="Bubblegum" width="32%">
+  <img src="docs/screenshots/cosmic-night.png" alt="Cosmic Night" width="32%">
+  <img src="docs/screenshots/quantum-rose.png" alt="Quantum Rose" width="32%">
 </p>
 
 ---
