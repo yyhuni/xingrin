@@ -1,0 +1,8 @@
+/**
+ * 主题文件索引
+ * 所有颜色主题都在这里引入
+ */
+@import "./bubblegum.css";
+@import "./quantum-rose.css";
+@import "./clean-slate.css";
+@import "./cosmic-night.css";

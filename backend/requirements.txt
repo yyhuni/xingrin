@@ -1,0 +1,47 @@
+# Django 核心
+Django==5.2.7
+djangorestframework==3.15.2
+djangorestframework-camel-case==1.4.2
+psycopg2-binary==2.9.10
+
+# API 文档
+drf-yasg==1.21.7
+setuptools==75.6.0
+
+# CORS 支持
+django-cors-headers==4.3.1
+
+# 环境变量管理
+python-dotenv==1.0.1
+
+# 异步任务和工作流编排
+prefect==3.4.25
+fastapi==0.115.5  # 锁定版本，0.123+ 与 Prefect 不兼容
+redis==5.0.3  # 可选：用于缓存
+APScheduler>=3.10.0  # 定时任务调度器
+
+# WebSocket 支持
+channels==4.0.0
+channels-redis==4.2.0
+uvicorn[standard]==0.30.1
+
+# SSH & 远程部署
+paramiko>=3.0.0
+
+# 测试框架
+pytest==8.0.0
+pytest-django==4.7.0
+
+# 工具库
+python-dateutil==2.9.0
+pytz==2024.1
+validators==0.22.0
+PyYAML==6.0.1
+colorlog==6.8.2  # 彩色日志输出
+python-json-logger==2.0.7  # JSON 结构化日志
+Jinja2>=3.1.6  # 命令模板引擎
+croniter>=2.0.0  # Cron 表达式解析（定时扫描）
+psutil>=5.9.0
+
+# 缓存
+cachetools>=5.3.0

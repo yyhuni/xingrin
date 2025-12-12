@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# 运行时文件（Flower、PID）
+/var/*
+!/var/.gitkeep
+flower.db
+pids/
+script/dev/.pids/
+
+# 扫描结果和日志（后端数据）
+/results/*
+!/results/.gitkeep
+/logs/*
+!/logs/.gitkeep
+
+# 环境变量（敏感信息）
+.env
+.env.development
+.env.production
+.env.staging
+# 只提交模板文件：.env.*.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store

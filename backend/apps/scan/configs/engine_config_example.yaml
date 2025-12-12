@@ -1,0 +1,224 @@
+# 引擎配置
+#
+# ==================== 参数命名规范 ====================
+# 所有参数统一用中划线，如 rate-limit, request-timeout, wordlist-name
+# - 贴近 CLI 参数风格，用户更直观
+# - 系统会自动转换为下划线供代码使用
+#
+# ==================== 必需参数 ====================
+# - enabled: 是否启用工具（true/false）
+# - timeout: 超时时间（秒），工具执行超过此时间会被强制终止
+#
+# 使用方式：
+# - 在前端创建扫描引擎时，将此配置保存到数据库
+# - 执行扫描时，从数据库读取配置并传递给 Flow
+# - 取消注释可选参数即可启用
+
+# ==================== 子域名发现 ====================
+# 
+# 流程说明：
+#   Stage 1: 被动收集（并行） - 必选，至少启用一个工具
+#   Stage 2: 字典爆破（可选） - 使用字典暴力枚举子域名
+#   Stage 3: 变异生成 + 验证（可选） - 基于已发现域名生成变异，流式验证存活
+#   Stage 4: DNS 存活验证（可选） - 验证所有候选域名是否能解析
+#
+# 灵活组合：可以关闭 2/3/4 中的任意阶段，最终结果会根据实际执行的阶段动态决定
+#
+subdomain_discovery:
+  # === Stage 1: 被动收集工具（并行执行）===
+  passive_tools:
+    subfinder:
+      enabled: true
+      timeout: 7200      # 2小时
+      # threads: 10     # 可选，并发 goroutine 数
+      
+    amass_passive:
+      enabled: true
+      timeout: 7200      # 2小时
+      
+    amass_active:
+      enabled: true      # 主动枚举 + 爆破
+      timeout: 7200
+      
+    sublist3r:
+      enabled: true
+      timeout: 7200
+      # threads: 50     # 可选，线程数
+    
+    assetfinder:
+      enabled: true
+      timeout: 7200
+
+  # === Stage 2: 主动字典爆破（可选）===
+  bruteforce:
+    enabled: false                       # 是否启用字典爆破
+    subdomain_bruteforce:
+      timeout: auto                      # 自动根据字典行数计算（后续代码中按行数 * 3 秒实现）
+      wordlist-name: subdomains-top1million-110000.txt    # 字典名称，对应「字典管理」中的 Wordlist.name
+
+  # === Stage 3: 变异生成 + 存活验证（可选，流式管道避免 OOM）===
+  permutation:
+    enabled: true                        # 是否启用变异生成
+    subdomain_permutation_resolve:
+      timeout: 7200                      # 2小时（变异量大时需要更长时间）
+
+  # === Stage 4: DNS 存活验证（可选）===
+  resolve:
+    enabled: true                        # 是否启用存活验证
+    subdomain_resolve:
+      timeout: auto                      # 自动根据候选子域数量计算（在 Flow 中按行数 * 3 秒实现）
+      
+
+# ==================== 端口扫描 ====================
+port_scan:
+  tools:
+    naabu_active:
+      enabled: true
+      timeout: auto     # 自动计算（根据：目标数 × 端口数 × 0.5秒）
+                        # 例如：100个域名 × 100个端口 × 0.5 = 5000秒
+                        #       10个域名 × 1000个端口 × 0.5 = 5000秒
+                        # 超时范围：60秒 ~ 2天（172800秒）
+                        # 或者手动指定：timeout: 3600
+      threads: 200        # 可选，并发连接数（默认 5）
+      # ports: 1-65535    # 可选，扫描端口范围（默认 1-65535）
+      top-ports: 100    # 可选，Scan for nmap top 100 ports（影响 timeout 计算）
+      rate: 10          # 可选，扫描速率（默认 10）
+      
+    naabu_passive:
+      enabled: true
+      timeout: auto     # 自动计算（被动扫描通常较快，端口数默认为 100）
+      # 被动扫描，使用被动数据源，无需额外配置
+
+# ==================== 站点扫描 ====================
+site_scan:
+  tools:
+    httpx:
+      enabled: true
+      timeout: auto         # 自动计算（根据URL数量，每个URL 1秒）
+                            # 或者手动指定：timeout: 3600
+      # threads: 50         # 可选，并发线程数（httpx 默认 50）
+      # rate-limit: 150     # 可选，每秒发送的请求数量（httpx 默认 150）
+      # request-timeout: 10  # 可选，单个请求的超时时间（httpx 默认 10）秒
+      # retries: 2          # 可选，请求失败重试次数
+
+# ==================== 目录扫描 ====================
+directory_scan:
+  tools:
+    ffuf:
+      enabled: true
+      timeout: auto                            # 自动计算超时时间（根据字典行数）
+                                               # 计算公式：字典行数 × 0.02秒/词
+                                               # 超时范围：60秒 ~ 7200秒（2小时）
+                                               # 也可以手动指定固定超时（如 300）
+      wordlist-name: dir_default.txt          # 字典名称（必需），对应「字典管理」中唯一的 Wordlist.name
+                                               # 安装时会自动初始化名为 dir_default.txt 的默认目录字典
+                                               # ffuf 会逐行读取字典文件，将每行作为 FUZZ 关键字的替换值
+      delay: 0.1-2.0                         # Seconds of delay between requests, or a range of random delay
+                                               # For example "0.1" or "0.1-2.0"
+      threads: 10                            # Number of concurrent threads (default: 40)
+      request-timeout: 10                    # HTTP request timeout in seconds (default: 10)
+      match-codes: 200,201,301,302,401,403   # Match HTTP status codes, comma separated
+      # rate: 0                                # Rate of requests per second (default: 0)
+
+# ==================== URL 获取 ====================
+url_fetch:
+  tools:
+    waymore:
+      enabled: true
+      timeout: 3600     # 工具级别总超时：固定 3600 秒（按域名 target_name 输入）
+                        # 如果目标较大或希望更快/更慢，可根据需要手动调整秒数
+                        # 输入类型：domain_name（域名级别，自动去重同域名站点）
+    
+    katana:
+      enabled: true
+      timeout: auto         # 工具级别总超时：自动计算（根据站点数量）
+                            # 或手动指定：timeout: 300
+      
+      # ========== 核心功能参数（已在命令中固定开启） ==========
+      # -jc: JavaScript 爬取 + 自动解析 .js 文件里的所有端点（最重要）
+      # -xhr: 从 JS 中提取 XHR/Fetch 请求的 API 路径（再多挖 10-20% 隐藏接口）
+      # -kf all: 自动 fuzz 所有已知敏感文件（.env、.git、backup、config 等 5000+ 条）
+      # -fs rdn: 智能过滤重复+噪声路径（分页、?id=1/2/3 全干掉，输出极干净）
+      
+      # ========== 可选参数（推荐配置） ==========
+      depth: 5              # 爬取最大深度（平衡深度与时间，默认 3，推荐 5）
+      threads: 10           # 全局并发数（极低并发最像真人，推荐 10）
+      rate-limit: 30        # 全局硬限速：每秒最多 30 个请求（WAF 几乎不报警）
+      random-delay: 1       # 每次请求之间随机延迟 0.5~1.5 秒（再加一层人性化）
+      retry: 2              # 失败请求自动重试 2 次（网络抖动不丢包）
+      request-timeout: 12   # 单请求超时 12 秒（防卡死，katana 参数名是 -timeout）
+      
+      # 输入类型：url（站点级别，每个站点单独爬取）
+    
+    uro:
+      enabled: true
+      timeout: auto         # 自动计算（根据 URL 数量，每 100 个约 1 秒）
+                            # 范围：30 秒 ~ 300 秒
+                            # 或手动指定：timeout: 60
+      
+      # ========== 可选参数 ==========
+      # whitelist:          # 只保留指定扩展名的 URL（如：php,asp,jsp）
+      #   - php
+      #   - asp
+      # blacklist:            # 排除指定扩展名的 URL（静态资源）
+      #   - jpg
+      #   - jpeg
+      #   - png
+      #   - gif
+      #   - svg
+      #   - ico
+      #   - css
+      #   - woff
+      #   - woff2
+      #   - ttf
+      #   - eot
+      #   - mp4
+      #   - mp3
+      #   - pdf
+      # filters:             # 额外的过滤规则，参考 uro 文档
+      #   - hasparams        # 只保留有参数的 URL
+      #   - hasext           # 只保留有扩展名的 URL
+      #   - vuln             # 只保留可能有漏洞的 URL
+      
+      # 用途：清理合并后的 URL 列表，去除冗余和无效 URL
+      # 输入类型：merged_file（合并后的 URL 文件）
+      # 输出：清理后的 URL 列表
+    
+    httpx:
+      enabled: true
+      timeout: auto         # 自动计算（根据 URL 数量，每个 URL 1 秒）
+                            # 或手动指定：timeout: 600
+      # threads: 50         # 可选，并发线程数（httpx 默认 50）
+      # rate-limit: 150     # 可选，每秒发送的请求数量（httpx 默认 150）
+      # request-timeout: 10  # 可选，单个请求的超时时间（httpx 默认 10）秒
+      # retries: 2          # 可选，请求失败重试次数
+      
+      # 用途：判断 URL 存活，过滤无效 URL
+      # 输入类型：url_file（URL 列表文件）
+      # 输出：存活的 URL 及其响应信息（status, title, server, tech 等）
+
+# ==================== 漏洞扫描 ====================
+vuln_scan:
+  tools:
+    dalfox_xss:
+      enabled: true
+      timeout: auto          # 自动计算（根据 endpoints 行数 × 100 秒），或手动指定秒数如 timeout: 600
+      request-timeout: 10    # Dalfox 单个请求的超时时间，对应命令行 --timeout
+      only-poc: r            # 只输出 POC 结果（r: 反射型）
+      ignore-return: "302,404,403"  # 忽略这些返回码
+      # blind-xss-server: xxx  # 可选：盲打 XSS 回连服务地址，需要时再开启
+      delay: 100             # Dalfox 扫描内部延迟参数
+      worker: 10             # Dalfox worker 数量
+      user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"  # 默认 UA，可根据需要修改
+
+    nuclei:
+      enabled: true
+      timeout: auto                        # 自动计算（根据 endpoints 行数），或手动指定秒数
+      template-repo-names:                 # 模板仓库列表（必填，数组写法），对应「Nuclei 模板」中的仓库名
+        - nuclei-templates                 # Worker 会自动同步到与 Server 一致的 commit 版本
+        # - nuclei-custom                  # 可追加自定义仓库，按顺序依次 -t 传入
+      concurrency: 25                      # 并发数（默认 25）
+      rate-limit: 150                      # 每秒请求数限制（默认 150）
+      request-timeout: 5                   # 单个请求超时秒数（默认 5）
+      severity: medium,high,critical       # 只扫描中高危，降低噪音（逗号分隔）
+      # tags: cve,rce                      # 可选：只使用指定标签的模板
