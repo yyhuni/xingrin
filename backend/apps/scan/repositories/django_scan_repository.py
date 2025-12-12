@@ -500,7 +500,7 @@ class DjangoScanRepository:
         scan_id: int,
         current_status: ScanStatus,
         new_status: ScanStatus,
-        stopped_at: datetime = None
+        stopped_at: datetime | None = None
     ) -> bool:
         """
         条件更新扫描状态（原子操作）

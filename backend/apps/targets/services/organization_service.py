@@ -89,6 +89,9 @@ class OrganizationService:
             - 阶段 2：硬删除（后台），真正删除数据和中间表
         """
         
+        # 0. 先获取组织名称（用于返回给前端）
+        org_names = [name for _, name in self.repo.get_names_by_ids(organization_ids)]
+        
         # 1. 软删除（如果 ID 不存在，update 返回 0）
         soft_count = self.soft_delete_organizations(organization_ids)
         
@@ -119,6 +122,7 @@ class OrganizationService:
         
         return {
             'soft_deleted_count': soft_count,
+            'organization_names': org_names,
             'hard_delete_scheduled': True
         }
     

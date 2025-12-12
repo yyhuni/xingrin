@@ -168,18 +168,6 @@ class DjangoTargetRepository:
             defaults={'type': target_type}
         )
     
-    def get_by_ids(self, target_ids: List[int]) -> List[Target]:
-        """
-        根据 ID 列表获取目标（只返回未删除的）
-        
-        Args:
-            target_ids: 目标 ID 列表
-        
-        Returns:
-            Target 对象列表
-        """
-        return list(Target.objects.filter(id__in=target_ids))
-    
     def hard_delete_by_ids(self, target_ids: List[int]) -> Tuple[int, Dict[str, int]]:
         """
         根据 ID 列表硬删除目标（使用数据库级 CASCADE）
