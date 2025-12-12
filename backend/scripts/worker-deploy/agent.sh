@@ -145,7 +145,20 @@ while true; do
     fi
     
     # CPU 使用率（百分比数值）
-    CPU_PERCENT=$(grep 'cpu ' ${PROC_DIR}/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {printf "%.1f", usage}')
+    # /proc/stat 是累计值，需要两次采样计算差值
+    CPU_STAT1=$(grep 'cpu ' ${PROC_DIR}/stat | awk '{print $2,$3,$4,$5,$6,$7,$8}')
+    sleep 0.5
+    CPU_STAT2=$(grep 'cpu ' ${PROC_DIR}/stat | awk '{print $2,$3,$4,$5,$6,$7,$8}')
+    CPU_PERCENT=$(echo "$CPU_STAT1 $CPU_STAT2" | awk '{
+        user1=$1; nice1=$2; sys1=$3; idle1=$4; iowait1=$5; irq1=$6; softirq1=$7;
+        user2=$8; nice2=$9; sys2=$10; idle2=$11; iowait2=$12; irq2=$13; softirq2=$14;
+        total1=user1+nice1+sys1+idle1+iowait1+irq1+softirq1;
+        total2=user2+nice2+sys2+idle2+iowait2+irq2+softirq2;
+        idle_diff=idle2-idle1;
+        total_diff=total2-total1;
+        if(total_diff>0) printf "%.1f", (1-idle_diff/total_diff)*100;
+        else printf "0.0";
+    }')
     
     # 内存使用率（百分比数值）
     if [ -d "/host/proc" ]; then
