@@ -1,0 +1,133 @@
+# ============================
+# 操作系统相关文件
+# ============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================
+# 前端 (Next.js/Node.js) 相关
+# ============================
+# 依赖目录
+front-back/node_modules/
+front-back/.pnpm-store/
+
+# Next.js 构建产物
+front-back/.next/
+front-back/out/
+front-back/dist/
+
+# 环境变量文件
+front-back/.env
+front-back/.env.local
+front-back/.env.development.local
+front-back/.env.test.local
+front-back/.env.production.local
+
+# 运行时和缓存
+front-back/.turbo/
+front-back/.swc/
+front-back/.eslintcache
+front-back/.tsbuildinfo
+
+# ============================
+# 后端 (Python/Django) 相关
+# ============================
+# Python 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# Python 编译文件
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django 相关
+backend/db.sqlite3
+backend/db.sqlite3-journal
+backend/media/
+backend/staticfiles/
+backend/.env
+backend/.env.local
+
+# Python 测试和覆盖率
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# ============================
+# 后端 (Go) 相关
+# ============================
+# 编译产物
+backend/bin/
+backend/dist/
+backend/*.exe
+backend/*.exe~
+backend/*.dll
+backend/*.so
+backend/*.dylib
+
+# 测试相关
+backend/*.test
+backend/*.out
+backend/*.prof
+
+# Go workspace 文件
+backend/go.work
+backend/go.work.sum
+
+# Go 依赖管理
+backend/vendor/
+
+# ============================
+# IDE 和编辑器相关
+# ============================
+.vscode/
+.idea/
+.cursor/
+.claude/
+.playwright-mcp/
+*.swp
+*.swo
+*~
+
+# ============================
+# Docker 相关
+# ============================
+docker/.env
+docker/.env.local
+
+# SSL 证书和私钥（不应提交）
+docker/nginx/ssl/*.pem
+docker/nginx/ssl/*.key
+docker/nginx/ssl/*.crt
+
+# ============================
+# 日志文件和扫描结果
+# ============================
+*.log
+logs/
+results/
+
+# 开发脚本运行时文件（进程 ID 和启动日志）
+backend/scripts/dev/.pids/
+
+# ============================
+# 临时文件
+# ============================
+tmp/
+temp/
+.cache/
+
+HGETALL
+KEYS

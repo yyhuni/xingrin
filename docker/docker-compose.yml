@@ -1,0 +1,109 @@
+# ============================================
+# 生产环境配置 - 使用 Docker Hub 预构建镜像
+# ============================================
+# 用法: docker compose up -d
+# 
+# 开发环境请使用: docker compose -f docker-compose.dev.yml up -d
+# ============================================
+
+services:
+  # PostgreSQL（可选，使用远程数据库时不启动）
+  postgres:
+    profiles: ["local-db"]
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    image: ${DOCKER_USER:-yyhuni}/xingrin-server:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "${SERVER_PORT}:8888"
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      # 统一使用固定路径（部署时需创建：mkdir -p /opt/xingrin/{results,logs}）
+      - /opt/xingrin/results:/app/backend/results
+      - /opt/xingrin/logs:/app/backend/logs
+      # Docker Socket 挂载：允许 Django 服务器执行本地 docker 命令（用于本地 Worker 任务分发）
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # Agent：轻量心跳上报 + 负载监控（~10MB）
+  # 扫描任务通过 task_distributor 分发到动态容器
+  # ============================================
+  
+  agent:
+    image: ${DOCKER_USER:-yyhuni}/xingrin-agent:${IMAGE_TAG:-latest}
+    container_name: xingrin-agent
+    restart: always
+    environment:
+      - SERVER_URL=http://server:8888
+      - WORKER_NAME=本地节点
+      - IS_LOCAL=true
+    depends_on:
+      server:
+        condition: service_healthy
+    volumes:
+      - /proc:/host/proc:ro
+
+  frontend:
+    image: ${DOCKER_USER:-yyhuni}/xingrin-frontend:${IMAGE_TAG:-latest}
+    restart: always
+    depends_on:
+      server:
+        condition: service_healthy
+
+  nginx:
+    image: ${DOCKER_USER:-yyhuni}/xingrin-nginx:${IMAGE_TAG:-latest}
+    restart: always
+    depends_on:
+      server:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: xingrin_network  # 固定网络名，不随目录名变化

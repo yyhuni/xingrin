@@ -1,0 +1,109 @@
+services:
+  # PostgreSQL（可选，使用远程数据库时不启动）
+  # 本地模式: docker compose --profile local-db up -d
+  # 远程模式: docker compose up -d（需配置 DB_HOST 为远程地址）
+  postgres:
+    profiles: ["local-db"]
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ..
+      dockerfile: docker/server/Dockerfile
+    restart: always
+    ports:
+      - "${SERVER_PORT}:8888"
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      # 统一使用固定路径（开发环境：ln -s ~/project/backend/results /opt/xingrin/results）
+      - /opt/xingrin/results:/app/backend/results
+      - /opt/xingrin/logs:/app/backend/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Agent：心跳上报 + 负载监控
+  agent:
+    build:
+      context: ..
+      dockerfile: docker/worker/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - SERVER_URL=http://server:8888
+      - WORKER_NAME=本地节点
+      - IS_LOCAL=true
+    command: bash /app/backend/scripts/worker-deploy/agent.sh
+    depends_on:
+      server:
+        condition: service_healthy
+    volumes:
+      - /proc:/host/proc:ro
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+    restart: always
+    depends_on:
+      server:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: ..
+      dockerfile: docker/nginx/Dockerfile
+    restart: always
+    depends_on:
+      server:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # SSL 证书挂载（方便更新）
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: xingrin_network  # 固定网络名，不随目录名变化

@@ -1,0 +1,23 @@
+# Node modules（前端本地开发产物，Docker 构建时会重新安装）
+frontend/node_modules
+frontend/.next
+
+# Python 虚拟环境
+.venv
+__pycache__
+*.pyc
+
+# 日志和临时文件
+*.log
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Docker 相关（避免嵌套）
+docker/.env
