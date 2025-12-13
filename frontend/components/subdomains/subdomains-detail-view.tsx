@@ -161,9 +161,8 @@ export function SubdomainsDetailView({
     () =>
       createSubdomainColumns({
         formatDate,
-        navigate,
       }),
-    [formatDate, navigate]
+    [formatDate]
   )
 
   // 转换后端数据格式为前端 Subdomain 类型（必须在条件渲染之前调用）
