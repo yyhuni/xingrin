@@ -264,6 +264,9 @@ class CommandExecutor:
                 start_new_session=True
             )
             
+            # 设置进程 PID 用于性能追踪
+            perf_tracker.set_pid(process.pid)
+            
             # 等待完成
             process.communicate(timeout=timeout)
             
@@ -484,6 +487,9 @@ class CommandExecutor:
                 shell=shell,
                 start_new_session=True  # 关键：创建新进程组
             )
+        
+        # 设置进程 PID 用于性能追踪
+        perf_tracker.set_pid(process.pid)
             
         # 超时控制：使用 Timer 在指定时间后终止进程
         timed_out_event = threading.Event()

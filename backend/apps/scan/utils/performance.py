@@ -232,17 +232,73 @@ class FlowPerformanceTracker:
             )
 
 
+def _get_process_stats(pid: int) -> dict:
+    """
+    获取指定进程及其子进程的资源使用（类似 htop 显示）
+    
+    Args:
+        pid: 进程 ID
+    
+    Returns:
+        dict: {
+            'cpu_percent': float,  # 进程 CPU 使用率
+            'memory_mb': float,    # 进程内存使用 (MB)
+            'memory_percent': float  # 进程内存占比
+        }
+    """
+    if not psutil:
+        return {'cpu_percent': 0.0, 'memory_mb': 0.0, 'memory_percent': 0.0}
+    
+    try:
+        process = psutil.Process(pid)
+        
+        # 获取进程及所有子进程
+        children = process.children(recursive=True)
+        all_processes = [process] + children
+        
+        total_cpu = 0.0
+        total_memory = 0
+        
+        for p in all_processes:
+            try:
+                # cpu_percent 需要先调用一次初始化，第二次才有值
+                # 这里用 interval=0.1 获取短时间内的 CPU 使用率
+                total_cpu += p.cpu_percent(interval=0)
+                mem_info = p.memory_info()
+                total_memory += mem_info.rss  # RSS: Resident Set Size
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        
+        # 转换为 MB
+        memory_mb = total_memory / (1024 * 1024)
+        # 计算内存占比
+        total_mem = psutil.virtual_memory().total
+        memory_percent = (total_memory / total_mem) * 100 if total_mem > 0 else 0.0
+        
+        return {
+            'cpu_percent': total_cpu,
+            'memory_mb': memory_mb,
+            'memory_percent': memory_percent
+        }
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return {'cpu_percent': 0.0, 'memory_mb': 0.0, 'memory_percent': 0.0}
+    except Exception:
+        return {'cpu_percent': 0.0, 'memory_mb': 0.0, 'memory_percent': 0.0}
+
+
 class CommandPerformanceTracker:
     """
     命令执行性能追踪器
     
     用于追踪单个命令的执行性能，包括：
     - 执行耗时
-    - 系统 CPU 和内存使用（开始/结束）
+    - 进程级 CPU 和内存使用（类似 htop）
+    - 系统整体资源状态
     
     使用方式：
         tracker = CommandPerformanceTracker("ffuf", command="ffuf -u http://...")
         tracker.start()
+        tracker.set_pid(process.pid)  # 进程启动后设置 PID
         # ... 执行命令 ...
         tracker.finish(success=True, duration=45.2)
     """
@@ -251,15 +307,20 @@ class CommandPerformanceTracker:
         self.tool_name = tool_name
         self.command = command
         self.start_time: float = 0.0
-        self.cpu_start: float = 0.0
-        self.memory_gb_start: float = 0.0
+        self.pid: Optional[int] = None
+        # 系统级资源
+        self.sys_cpu_start: float = 0.0
+        self.sys_memory_gb_start: float = 0.0
+        # 进程级资源峰值
+        self.proc_cpu_peak: float = 0.0
+        self.proc_memory_mb_peak: float = 0.0
     
     def start(self) -> None:
         """开始追踪，记录初始系统状态"""
         self.start_time = time.time()
         stats = _get_system_stats()
-        self.cpu_start = stats['cpu_percent']
-        self.memory_gb_start = stats['memory_gb']
+        self.sys_cpu_start = stats['cpu_percent']
+        self.sys_memory_gb_start = stats['memory_gb']
         
         # 截断过长的命令
         cmd_display = self.command[:200] + "..." if len(self.command) > 200 else self.command
@@ -267,10 +328,51 @@ class CommandPerformanceTracker:
         perf_logger.info(
             "📊 命令开始 - %s, 系统: CPU %.1f%%, 内存 %.1fGB, 命令: %s",
             self.tool_name,
-            self.cpu_start,
-            self.memory_gb_start,
+            self.sys_cpu_start,
+            self.sys_memory_gb_start,
             cmd_display
         )
+    
+    def set_pid(self, pid: int) -> None:
+        """
+        设置要追踪的进程 PID
+        
+        Args:
+            pid: 进程 ID
+        """
+        self.pid = pid
+        # 初始化 CPU 采样（psutil 需要先调用一次）
+        if psutil and pid:
+            try:
+                process = psutil.Process(pid)
+                process.cpu_percent(interval=0)
+                for child in process.children(recursive=True):
+                    try:
+                        child.cpu_percent(interval=0)
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        pass
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    
+    def sample(self) -> dict:
+        """
+        采样当前进程资源使用（可选，用于长时间运行的命令）
+        
+        Returns:
+            dict: 进程资源使用情况
+        """
+        if not self.pid:
+            return {'cpu_percent': 0.0, 'memory_mb': 0.0, 'memory_percent': 0.0}
+        
+        stats = _get_process_stats(self.pid)
+        
+        # 更新峰值
+        if stats['cpu_percent'] > self.proc_cpu_peak:
+            self.proc_cpu_peak = stats['cpu_percent']
+        if stats['memory_mb'] > self.proc_memory_mb_peak:
+            self.proc_memory_mb_peak = stats['memory_mb']
+        
+        return stats
     
     def finish(
         self,
@@ -293,25 +395,55 @@ class CommandPerformanceTracker:
             duration = time.time() - self.start_time
         
         # 获取结束时的系统状态
-        stats = _get_system_stats()
-        cpu_end = stats['cpu_percent']
-        memory_gb_end = stats['memory_gb']
+        sys_stats = _get_system_stats()
+        
+        # 获取进程最终资源使用（如果进程还在）
+        proc_stats = {'cpu_percent': 0.0, 'memory_mb': 0.0, 'memory_percent': 0.0}
+        if self.pid:
+            proc_stats = _get_process_stats(self.pid)
+            # 更新峰值
+            if proc_stats['cpu_percent'] > self.proc_cpu_peak:
+                self.proc_cpu_peak = proc_stats['cpu_percent']
+            if proc_stats['memory_mb'] > self.proc_memory_mb_peak:
+                self.proc_memory_mb_peak = proc_stats['memory_mb']
         
         status = "✓" if success else ("⏱ 超时" if is_timeout else "✗")
         
         # 截断过长的命令
         cmd_display = self.command[:200] + "..." if len(self.command) > 200 else self.command
         
-        perf_logger.info(
-            "📊 命令结束 - %s %s, 耗时: %.2fs%s, "
-            "CPU: %.1f%%→%.1f%%, 内存: %.1fGB→%.1fGB, 命令: %s",
-            self.tool_name,
-            status,
-            duration,
-            f", 超时配置: {timeout}s" if timeout else "",
-            self.cpu_start,
-            cpu_end,
-            self.memory_gb_start,
-            memory_gb_end,
-            cmd_display
-        )
+        # 日志格式：进程资源 + 系统资源
+        if self.pid and (self.proc_cpu_peak > 0 or self.proc_memory_mb_peak > 0):
+            perf_logger.info(
+                "📊 命令结束 - %s %s, 耗时: %.2fs%s, "
+                "进程: CPU %.1f%%(峰值), 内存 %.1fMB(峰值), "
+                "系统: CPU %.1f%%→%.1f%%, 内存 %.1fGB→%.1fGB, "
+                "命令: %s",
+                self.tool_name,
+                status,
+                duration,
+                f", 超时配置: {timeout}s" if timeout else "",
+                self.proc_cpu_peak,
+                self.proc_memory_mb_peak,
+                self.sys_cpu_start,
+                sys_stats['cpu_percent'],
+                self.sys_memory_gb_start,
+                sys_stats['memory_gb'],
+                cmd_display
+            )
+        else:
+            # 没有进程级数据，只显示系统级
+            perf_logger.info(
+                "📊 命令结束 - %s %s, 耗时: %.2fs%s, "
+                "系统: CPU %.1f%%→%.1f%%, 内存 %.1fGB→%.1fGB, "
+                "命令: %s",
+                self.tool_name,
+                status,
+                duration,
+                f", 超时配置: {timeout}s" if timeout else "",
+                self.sys_cpu_start,
+                sys_stats['cpu_percent'],
+                self.sys_memory_gb_start,
+                sys_stats['memory_gb'],
+                cmd_display
+            )
