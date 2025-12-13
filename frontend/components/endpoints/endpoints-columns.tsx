@@ -123,7 +123,8 @@ export function createEndpointColumns({
           return <span className="text-muted-foreground text-sm">-</span>
         }
 
-        const maxLength = 40
+        // 根据列宽度估算可显示字符数（font-mono 约 7px/字符，列宽 250px 左右）
+        const maxLength = 32
         const isLong = url.length > maxLength
         const displayUrl = isLong ? url.substring(0, maxLength) + "..." : url
 
