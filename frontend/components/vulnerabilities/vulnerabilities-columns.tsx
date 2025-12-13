@@ -8,10 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
-import { toast } from "sonner"
 import type { Vulnerability, VulnerabilitySeverity } from "@/types/vulnerability.types"
 
 import { CopyablePopoverContent } from "@/components/ui/copyable-popover-content"
+import { TRUNCATE_LENGTHS } from "@/components/ui/truncated-cell"
 
 // 统一的漏洞严重程度颜色配置（与图表一致）
 const severityConfig: Record<VulnerabilitySeverity, { label: string; className: string }> = {
@@ -110,7 +110,7 @@ export function createVulnerabilityColumns({
         const url = row.original.url
         if (!url) return <span className="text-muted-foreground">-</span>
         
-        const maxLength = 40
+        const maxLength = TRUNCATE_LENGTHS.url
         const isLong = url.length > maxLength
         const displayUrl = isLong ? url.substring(0, maxLength) + "..." : url
         

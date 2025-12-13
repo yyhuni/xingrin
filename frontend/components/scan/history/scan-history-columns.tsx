@@ -219,7 +219,7 @@ export const createScanHistoryColumns = ({
       
       const maxLength = 30
       const isLong = targetName.length > maxLength
-      const displayText = isLong ? targetName.substring(0, maxLength) : targetName
+      const displayText = isLong ? targetName.substring(0, maxLength) + "..." : targetName
       
       return (
         <div className="group inline-flex items-center gap-1 max-w-[250px]">

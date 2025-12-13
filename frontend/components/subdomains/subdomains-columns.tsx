@@ -5,17 +5,11 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { ChevronsUpDown, ChevronUp, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react"
 
 import type { Subdomain } from "@/types/subdomain.types"
 
-import { CopyablePopoverContent } from "@/components/ui/copyable-popover-content"
+import { TruncatedCell } from "@/components/ui/truncated-cell"
 
 // 列创建函数的参数类型
 interface CreateColumnsProps {
@@ -92,34 +86,14 @@ export const createSubdomainColumns = ({
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Subdomain" />
     ),
-    cell: ({ row }) => {
-      const name = row.getValue("name") as string
-      if (!name) return <span className="text-muted-foreground text-sm">-</span>
-      
-      const maxLength = 40
-      const isLong = name.length > maxLength
-      const displayName = isLong ? name.substring(0, maxLength) + "..." : name
-
-      return (
-        <div className="flex items-center gap-1 max-w-[350px]">
-          <span className="text-sm font-medium">
-            {displayName}
-          </span>
-          {isLong && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground flex-shrink-0 transition-colors">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </span>
-              </PopoverTrigger>
-              <PopoverContent className="w-96 p-3">
-                <CopyablePopoverContent value={name} className="font-mono text-xs" />
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
-      )
-    },
+    cell: ({ row }) => (
+      <TruncatedCell 
+        value={row.getValue("name")} 
+        maxLength="subdomain" 
+        mono 
+        className="font-medium"
+      />
+    ),
   },
 
   // 发现时间列
@@ -133,5 +107,4 @@ export const createSubdomainColumns = ({
       return value ? formatDate(value) : "-"
     },
   },
-
 ]

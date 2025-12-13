@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Column, ColumnDef } from "@tanstack/react-table"
-import { ChevronUp, ChevronDown, ChevronsUpDown, MoreHorizontal } from "lucide-react"
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +14,7 @@ import {
 
 import type { IPAddress } from "@/types/ip-address.types"
 
-import { CopyablePopoverContent } from "@/components/ui/copyable-popover-content"
+import { TruncatedCell } from "@/components/ui/truncated-cell"
 
 interface DataTableColumnHeaderProps<TData, TValue> {
   column: Column<TData, TValue>
@@ -84,34 +84,9 @@ export function createIPAddressColumns(params: {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="IP 地址" />
       ),
-      cell: ({ row }) => {
-        const ip = row.original.ip
-        if (!ip) return <span className="text-muted-foreground text-sm">-</span>
-        
-        const maxLength = 40
-        const isLong = ip.length > maxLength
-        const displayIp = isLong ? ip.substring(0, maxLength) + "..." : ip
-
-        return (
-          <div className="flex items-center gap-1 max-w-[350px]">
-            <span className="text-sm font-mono">
-              {displayIp}
-            </span>
-            {isLong && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground flex-shrink-0 transition-colors">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent className="w-96 p-3">
-                  <CopyablePopoverContent value={ip} className="font-mono text-xs" />
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        )
-      },
+      cell: ({ row }) => (
+        <TruncatedCell value={row.original.ip} maxLength="ip" mono />
+      ),
     },
     // 关联主机名列
     {

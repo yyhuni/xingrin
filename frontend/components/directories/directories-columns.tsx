@@ -13,16 +13,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { IconDots } from "@tabler/icons-react"
-import { ChevronUp, ChevronDown, ChevronsUpDown, MoreHorizontal } from "lucide-react"
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
 import { toast } from "sonner"
 import type { Directory } from "@/types/directory.types"
-import { CopyablePopoverContent } from "@/components/ui/copyable-popover-content"
+import { TruncatedUrlCell } from "@/components/ui/truncated-cell"
 
 /**
  * HTTP 状态码徽章组件
@@ -30,7 +25,6 @@ import { CopyablePopoverContent } from "@/components/ui/copyable-popover-content
 function StatusBadge({ status }: { status: number | null }) {
   if (!status) return <span className="text-muted-foreground">-</span>
 
-  let variant: "default" | "secondary" | "destructive" | "outline" = "default"
   let className = ""
 
   if (status >= 200 && status < 300) {
@@ -44,7 +38,7 @@ function StatusBadge({ status }: { status: number | null }) {
   }
 
   return (
-    <Badge variant={variant} className={className}>
+    <Badge variant="default" className={className}>
       {status}
     </Badge>
   )
@@ -115,34 +109,9 @@ export function createDirectoryColumns({
           </Button>
         )
       },
-      cell: ({ row }) => {
-        const url = row.getValue("url") as string
-        if (!url) return <span className="text-muted-foreground text-sm">-</span>
-        
-        const maxLength = 40
-        const isLong = url.length > maxLength
-        const displayUrl = isLong ? url.substring(0, maxLength) + "..." : url
-
-        return (
-          <div className="flex items-center gap-1 w-[280px] min-w-[280px]">
-            <span className="text-sm font-mono truncate">
-              {displayUrl}
-            </span>
-            {isLong && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground flex-shrink-0 transition-colors">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent className="w-96 p-3">
-                  <CopyablePopoverContent value={url} className="font-mono text-xs" />
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        )
-      },
+      cell: ({ row }) => (
+        <TruncatedUrlCell value={row.getValue("url")} />
+      ),
     },
     // Status 列
     {
