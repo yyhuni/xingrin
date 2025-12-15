@@ -188,10 +188,22 @@ main() {
     echo "=========================================="
     echo ""
     log_info "用户: $DOCKER_USER"
-    log_info "版本: $VERSION"
+    log_warn "版本: ${VERSION}"
     log_info "推送: $PUSH"
     [ -n "$PLATFORM" ] && log_info "平台: $PLATFORM"
     echo ""
+    
+    # 确认版本号，防止误覆盖
+    if [ "$PUSH" = "yes" ]; then
+        echo -e "${YELLOW}[!] 请确认版本号 ${VERSION} 是否正确${NC}"
+        echo -e "${YELLOW}    如需修改，请编辑 VERSION 文件${NC}"
+        read -p "确认推送？(y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "已取消"
+            exit 0
+        fi
+    fi
     
     check_docker_login
     

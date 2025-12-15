@@ -2,12 +2,8 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - 'docker/**'
-      - '.github/workflows/**'
+    tags:
+      - 'v*'  # 只在推送 v 开头的 tag 时触发（如 v1.0.0）
   workflow_dispatch:  # 手动触发
 
 # 并发控制：同一分支只保留最新的构建，取消之前正在运行的
