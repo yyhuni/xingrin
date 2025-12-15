@@ -292,12 +292,15 @@ SERVER_PORT = os.getenv('SERVER_PORT', '8888')
 # ============================================
 # Docker 镜像版本配置（统一管理，确保所有组件版本一致）
 DOCKER_USER = os.getenv('DOCKER_USER', 'yyhuni')
-IMAGE_TAG = os.getenv('IMAGE_TAG')
-if not IMAGE_TAG:
-    raise ValueError("IMAGE_TAG 环境变量未设置，请在 .env 中配置镜像版本")
+IMAGE_TAG = os.getenv('IMAGE_TAG', '')
 
-# 任务容器使用的 Docker 镜像（自动使用 IMAGE_TAG）
-TASK_EXECUTOR_IMAGE = os.getenv('TASK_EXECUTOR_IMAGE', f'{DOCKER_USER}/xingrin-worker:{IMAGE_TAG}')
+# 任务容器使用的 Docker 镜像
+# 注意：IMAGE_TAG 在主服务器上必须设置，Worker 容器不需要（不会创建其他容器）
+if IMAGE_TAG:
+    TASK_EXECUTOR_IMAGE = os.getenv('TASK_EXECUTOR_IMAGE', f'{DOCKER_USER}/xingrin-worker:{IMAGE_TAG}')
+else:
+    # Worker 容器场景：不需要 TASK_EXECUTOR_IMAGE
+    TASK_EXECUTOR_IMAGE = os.getenv('TASK_EXECUTOR_IMAGE', '')
 
 # 任务提交间隔（秒）- 防止短时间内重复分配到同一节点
 # 应大于心跳间隔（3秒），确保负载数据已更新

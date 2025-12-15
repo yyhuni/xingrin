@@ -48,7 +48,9 @@ class TaskDistributor:
     _last_submit_time: float = 0
     
     def __init__(self):
-        self.docker_image = settings.TASK_EXECUTOR_IMAGE  # 必须有值，settings.py 启动时已校验
+        self.docker_image = settings.TASK_EXECUTOR_IMAGE
+        if not self.docker_image:
+            raise ValueError("TASK_EXECUTOR_IMAGE 未配置，请确保 IMAGE_TAG 环境变量已设置")
         self.results_mount = getattr(settings, 'CONTAINER_RESULTS_MOUNT', '/app/backend/results')
         self.logs_mount = getattr(settings, 'CONTAINER_LOGS_MOUNT', '/app/backend/logs')
         self.submit_interval = getattr(settings, 'TASK_SUBMIT_INTERVAL', 5)
