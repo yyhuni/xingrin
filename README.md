@@ -149,6 +149,23 @@ sudo ./uninstall.sh
 # 更新
 sudo ./update.sh
 ```
+## 日志
+项目日志：/opt/xingrin/logs 下存储了这个项目的运行日志信息，error文件存储了错误相关信息，xingrin.log存储了包括错误在内的所有项目日志
+工具调用日志：/opt/xingrin/results 下存储了工具的运行结果日志，比如naabu，httpx等的结果调用日志
+
+## 🤝 反馈与贡献
+
+- 🐛 **如果发现 Bug** 可以点击右边链接进行提交 [Issue](https://github.com/yyhuni/xingrin/issues)
+- 💡 **有新想法，比如UI设计，功能设计等** 欢迎点击右边链接进行提交建议 [Issue](https://github.com/yyhuni/xingrin/issues)
+- 🔧 **想参与开发？** 关注我公众号与我个人联系
+
+## 📧 联系
+目前版本就我个人使用，可能会有很多边界问题，可以提交[Issue](https://github.com/yyhuni/xingrin/issues)，或者直接给我的公众号发消息，我都会回复的
+
+- 微信公众号: **洋洋的小黑屋**
+
+<img src="docs/wechat-qrcode.png" alt="微信公众号" width="200">
+
 
 ## ⚠️ 免责声明
 
@@ -184,15 +201,3 @@ sudo ./update.sh
 
 如需商业授权，请联系作者。
 
-## 🤝 反馈与贡献
-
-- 🐛 **发现 Bug** 点击提交 [Issue](https://github.com/yyhuni/xingrin/issues)
-- 💡 **有新想法** 欢迎提交功能建议 [Issue](https://github.com/yyhuni/xingrin/issues)
-- 🔧 **想参与开发？** 关注我公众号与我个人联系
-
-## 📧 联系
-目前版本就我个人使用，可能会有很多边界问题，可以直接给我的公众号发消息，我都会回复的
-
-- 微信公众号: **洋洋的小黑屋**
-
-<img src="docs/wechat-qrcode.png" alt="微信公众号" width="200">
