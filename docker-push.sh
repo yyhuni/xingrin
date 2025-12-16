@@ -197,6 +197,7 @@ main() {
     if [ "$PUSH" = "yes" ]; then
         echo -e "${YELLOW}[!] 请确认版本号 ${VERSION} 是否正确${NC}"
         echo -e "${YELLOW}    如需修改，请编辑 VERSION 文件${NC}"
+        echo -e "${RED}    覆盖版本号会导致所有用户的旧版本拉取出现问题！！！${NC}"
         read -p "确认推送？(y/N) " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
