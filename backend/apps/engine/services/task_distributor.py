@@ -243,8 +243,8 @@ class TaskDistributor:
         Returns:
             (success, container_id) 元组
         """
-        logger.debug("准备执行 Docker 命令 - Worker: %s, Local: %s", worker.name, worker.is_local)
-        logger.debug("Docker 命令: %s", docker_cmd[:200] + '...' if len(docker_cmd) > 200 else docker_cmd)
+        logger.info("准备执行 Docker 命令 - Worker: %s, Local: %s", worker.name, worker.is_local)
+        logger.info("Docker 命令: %s", docker_cmd[:200] + '...' if len(docker_cmd) > 200 else docker_cmd)
         
         if worker.is_local:
             return self._execute_local_docker(docker_cmd)
