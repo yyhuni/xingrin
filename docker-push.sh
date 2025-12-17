@@ -15,20 +15,25 @@ export DOCKER_BUILDKIT=1
 # 切换到脚本所在目录（项目根目录）
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# 从 VERSION 文件读取版本号（单一版本源）
-VERSION_FILE="${SCRIPT_DIR}/VERSION"
-if [ -f "$VERSION_FILE" ]; then
-    FILE_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
-else
-    echo -e "\033[0;31m[ERROR]\033[0m VERSION 文件不存在，请先创建版本文件"
-    echo "    示例: echo 'v1.0.0' > VERSION"
-    exit 1
-fi
+# 从 Git Tag 获取版本号（必须有 tag 才能构建）
+get_version() {
+    local tag
+    tag=$(git describe --tags --exact-match 2>/dev/null)
+    if [ -n "$tag" ]; then
+        echo "$tag"
+    else
+        echo -e "\033[0;31m[ERROR]\033[0m 当前 commit 没有 Git Tag，无法构建"
+        echo "    请先打 tag: git tag v1.x.x && git push --tags"
+        exit 1
+    fi
+}
+
+GIT_VERSION=$(get_version)
 
 # Docker Hub 用户名（修改为你的用户名）
 DOCKER_USER="${DOCKER_USER:-yyhuni}"
-# 镜像版本标签（从 VERSION 文件读取，确保版本一致性）
-VERSION="$FILE_VERSION"
+# 镜像版本标签（从 Git Tag 获取）
+VERSION="$GIT_VERSION"
 # 是否推送（默认 yes，设为 no 则只构建不推送）
 PUSH="${PUSH:-yes}"
 # 构建平台（默认当前架构，可设为 linux/amd64,linux/arm64 进行多架构构建）
@@ -60,7 +65,7 @@ show_help() {
     cat << EOF
 用法: $0 [选项] [镜像名...]
 
-版本号从 VERSION 文件读取，修改版本请编辑该文件。
+版本号从 Git Tag 自动获取，无 tag 时使用 dev-<commit>。
 
 选项:
   -u, --user USER      Docker Hub 用户名 (默认: $DOCKER_USER)
@@ -196,7 +201,7 @@ main() {
     # 确认版本号，防止误覆盖
     if [ "$PUSH" = "yes" ]; then
         echo -e "${YELLOW}[!] 请确认版本号 ${VERSION} 是否正确${NC}"
-        echo -e "${YELLOW}    如需修改，请编辑 VERSION 文件${NC}"
+        echo -e "${YELLOW}    如需修改，请打新的 Git Tag: git tag v1.x.x${NC}"
         echo -e "${RED}    覆盖版本号会导致所有用户的旧版本拉取出现问题！！！${NC}"
         read -p "确认推送？(y/N) " -n 1 -r
         echo
