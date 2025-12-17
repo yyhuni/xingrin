@@ -167,6 +167,20 @@ class ScanService:
         """停止扫描任务（委托给 ScanControlService）"""
         return self.control_service.stop_scan(scan_id)
     
+    def hard_delete_scans(self, scan_ids: List[int]) -> tuple[int, Dict[str, int]]:
+        """
+        硬删除扫描任务（真正删除数据）
+        
+        用于 Worker 容器中执行，删除已软删除的扫描及其关联数据。
+        
+        Args:
+            scan_ids: 扫描任务 ID 列表
+            
+        Returns:
+            (删除数量, 详情字典)
+        """
+        return self.scan_repo.hard_delete_by_ids(scan_ids)
+    
     # ==================== 统计方法（委托给 ScanStatsService） ====================
     
     def get_statistics(self) -> dict:
