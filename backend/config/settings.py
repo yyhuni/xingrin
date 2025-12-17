@@ -294,12 +294,25 @@ SERVER_PORT = os.getenv('SERVER_PORT', '8888')
 DOCKER_USER = os.getenv('DOCKER_USER', 'yyhuni')
 IMAGE_TAG = os.getenv('IMAGE_TAG', '')
 
-# 任务容器使用的 Docker 镜像
-# 注意：IMAGE_TAG 在主服务器上必须设置，Worker 容器不需要（不会创建其他容器）
+# 任务执行器镜像配置（task_distributor 用于创建 worker 容器执行扫描任务）
+# 
+# 环境区分逻辑：
+# 1. 主服务器环境：
+#    - 有 IMAGE_TAG 环境变量（从 docker/.env 读取）
+#    - 需要 TASK_EXECUTOR_IMAGE 来创建 worker 容器执行任务
+#    - 默认使用 {DOCKER_USER}/xingrin-worker:{IMAGE_TAG}
+#    - 可通过 TASK_EXECUTOR_IMAGE 环境变量覆盖（开发测试时指向本地镜像）
+# 
+# 2. Worker 容器环境：
+#    - 无 IMAGE_TAG 环境变量（容器启动时未注入）
+#    - 无 .env 文件
+#    - 不需要 TASK_EXECUTOR_IMAGE（worker 只执行任务，不会再创建其他容器）
+#    - 设为空字符串避免 AttributeError，确保 settings 模块正常加载
 if IMAGE_TAG:
+    # 主服务器场景：构建完整镜像名
     TASK_EXECUTOR_IMAGE = os.getenv('TASK_EXECUTOR_IMAGE', f'{DOCKER_USER}/xingrin-worker:{IMAGE_TAG}')
 else:
-    # Worker 容器场景：不需要 TASK_EXECUTOR_IMAGE
+    # Worker 容器场景：空值，防止加载错误
     TASK_EXECUTOR_IMAGE = os.getenv('TASK_EXECUTOR_IMAGE', '')
 
 # 任务提交间隔（秒）- 防止短时间内重复分配到同一节点
