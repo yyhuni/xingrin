@@ -203,7 +203,12 @@ class TaskDistributor:
         host_logs_dir = settings.HOST_LOGS_DIR  # /opt/xingrin/logs
         
         # 环境变量：只需 SERVER_URL，其他配置容器启动时从配置中心获取
-        env_vars = [f"-e SERVER_URL={shlex.quote(server_url)}"]
+        # Prefect 本地模式配置：禁用 API server 和事件系统
+        env_vars = [
+            f"-e SERVER_URL={shlex.quote(server_url)}",
+            "-e PREFECT_API_URL=",  # 禁用 API server
+            "-e PREFECT_LOGGING_EXTRA_LOGGERS=",  # 禁用 Prefect 的额外内部日志器
+        ]
         
         # 挂载卷
         volumes = [
