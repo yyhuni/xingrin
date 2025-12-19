@@ -7,6 +7,7 @@
 
 import logging
 import os
+import ssl
 from pathlib import Path
 from urllib import request as urllib_request
 from urllib import parse as urllib_parse
@@ -89,7 +90,12 @@ def ensure_wordlist_local(wordlist_name: str) -> str:
     logger.info("从后端下载字典: %s -> %s", download_url, local_path)
 
     try:
-        with urllib_request.urlopen(download_url) as resp:
+        # 创建不验证 SSL 的上下文（远程 Worker 可能使用自签名证书）
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        with urllib_request.urlopen(download_url, context=ssl_context) as resp:
             if resp.status != 200:
                 raise RuntimeError(f"下载字典失败，HTTP {resp.status}")
             data = resp.read()

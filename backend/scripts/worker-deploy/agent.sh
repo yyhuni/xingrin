@@ -93,7 +93,7 @@ register_worker() {
 EOF
 )
     
-    RESPONSE=$(curl -s -X POST \
+    RESPONSE=$(curl -k -s -X POST \
         -H "Content-Type: application/json" \
         -d "$REGISTER_DATA" \
         "${API_URL}/api/workers/register/" 2>/dev/null)

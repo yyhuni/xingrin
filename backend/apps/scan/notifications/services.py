@@ -3,9 +3,13 @@
 import logging
 import time
 import requests
+import urllib3
 from .models import Notification, NotificationSettings
 from .types import NotificationLevel, NotificationCategory
 from .repositories import DjangoNotificationRepository, NotificationSettingsRepository
+
+# 禁用自签名证书的 SSL 警告（远程 Worker 回调场景）
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
@@ -314,7 +318,8 @@ def _push_via_api_callback(notification: Notification, server_url: str) -> None:
             'created_at': notification.created_at.isoformat()
         }
         
-        resp = requests.post(callback_url, json=data, timeout=5)
+        # verify=False: 远程 Worker 回调 Server 时可能使用自签名证书
+        resp = requests.post(callback_url, json=data, timeout=5, verify=False)
         resp.raise_for_status()
         
         logger.debug(f"通知回调推送成功 - ID: {notification.id}")

@@ -14,6 +14,10 @@ import os
 import sys
 import requests
 import logging
+import urllib3
+
+# 禁用自签名证书的 SSL 警告（远程 Worker 场景）
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +40,8 @@ def fetch_config_and_setup_django():
     print(f"[CONFIG] 正在从配置中心获取配置: {config_url}")
     print(f"[CONFIG] IS_LOCAL={is_local}")
     try:
-        resp = requests.get(config_url, timeout=10)
+        # verify=False: 远程 Worker 通过 HTTPS 访问时可能使用自签名证书
+        resp = requests.get(config_url, timeout=10, verify=False)
         resp.raise_for_status()
         config = resp.json()
         
