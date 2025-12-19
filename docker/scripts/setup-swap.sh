@@ -25,9 +25,9 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # 检查是否已有交换分区
-CURRENT_SWAP=$(swapon --show --bytes 2>/dev/null | tail -n +2 | awk '{sum += $3} END {print sum+0}')
-if [ "$CURRENT_SWAP" -gt 0 ]; then
-    CURRENT_SWAP_GB=$(echo "scale=1; $CURRENT_SWAP / 1024 / 1024 / 1024" | bc)
+CURRENT_SWAP_KB=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+CURRENT_SWAP_GB=$((CURRENT_SWAP_KB / 1024 / 1024))
+if [ "$CURRENT_SWAP_GB" -gt 0 ]; then
     log_warn "系统已有 ${CURRENT_SWAP_GB}GB 交换分区"
     swapon --show
     read -p "是否继续添加新的交换分区？(y/N) " -r
@@ -39,7 +39,7 @@ fi
 
 # 获取系统内存大小（GB）
 TOTAL_MEM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-TOTAL_MEM_GB=$(echo "scale=0; $TOTAL_MEM_KB / 1024 / 1024" | bc)
+TOTAL_MEM_GB=$((TOTAL_MEM_KB / 1024 / 1024))
 
 # 确定交换分区大小
 if [ -n "$1" ]; then

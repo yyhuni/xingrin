@@ -282,11 +282,13 @@ fi
 # 交换分区配置（仅 Linux）
 # ==============================================================================
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # 获取当前内存和交换分区大小
+    # 获取当前内存大小（GB，纯 bash 算术）
     TOTAL_MEM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-    TOTAL_MEM_GB=$(echo "scale=0; $TOTAL_MEM_KB / 1024 / 1024" | bc)
-    CURRENT_SWAP=$(swapon --show --bytes 2>/dev/null | tail -n +2 | awk '{sum += $3} END {print sum+0}')
-    CURRENT_SWAP_GB=$(echo "scale=1; $CURRENT_SWAP / 1024 / 1024 / 1024" | bc)
+    TOTAL_MEM_GB=$((TOTAL_MEM_KB / 1024 / 1024))
+    
+    # 获取当前交换分区大小（GB）
+    CURRENT_SWAP_KB=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+    CURRENT_SWAP_GB=$((CURRENT_SWAP_KB / 1024 / 1024))
     
     # 推荐交换分区大小（与内存相同，最小1G，最大8G）
     RECOMMENDED_SWAP=$TOTAL_MEM_GB
@@ -297,7 +299,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     info "系统内存: ${TOTAL_MEM_GB}GB，当前交换分区: ${CURRENT_SWAP_GB}GB"
     
     # 如果交换分区小于推荐值，提示用户
-    if [ "$(echo "$CURRENT_SWAP_GB < $RECOMMENDED_SWAP" | bc)" -eq 1 ]; then
+    if [ "$CURRENT_SWAP_GB" -lt "$RECOMMENDED_SWAP" ]; then
         echo -n -e "${BOLD}${CYAN}[?] 是否开启 ${RECOMMENDED_SWAP}GB 交换分区？可提升扫描稳定性 (Y/n) ${RESET}"
         read -r setup_swap
         echo
