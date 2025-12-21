@@ -1,9 +1,29 @@
 <h1 align="center">Xingrin - 星环</h1>
 
 <p align="center">
-  <b>一款现代化的企业级漏洞扫描与资产管理平台</b><br>
-  提供自动化安全检测、资产发现、漏洞管理等功能
+  <b>🛡️ 开源自动化漏洞扫描平台 | 企业级资产管理与安全检测系统</b>
 </p>
+
+<p align="center">
+  <a href="https://github.com/yyhuni/xingrin/stargazers"><img src="https://img.shields.io/github/stars/yyhuni/xingrin?style=flat-square&logo=github" alt="GitHub stars"></a>
+  <a href="https://github.com/yyhuni/xingrin/network/members"><img src="https://img.shields.io/github/forks/yyhuni/xingrin?style=flat-square&logo=github" alt="GitHub forks"></a>
+  <a href="https://github.com/yyhuni/xingrin/issues"><img src="https://img.shields.io/github/issues/yyhuni/xingrin?style=flat-square&logo=github" alt="GitHub issues"></a>
+  <a href="https://github.com/yyhuni/xingrin/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-PolyForm%20NC-blue?style=flat-square" alt="License"></a>
+</p>
+
+<p align="center">
+  <a href="#-功能特性">功能特性</a> •
+  <a href="#-快速开始">快速开始</a> •
+  <a href="#-文档">文档</a> •
+  <a href="#-技术栈">技术栈</a> •
+  <a href="#-反馈与贡献">反馈与贡献</a>
+</p>
+
+<p align="center">
+  <sub>🔍 关键词: 漏洞扫描 | 资产发现 | 安全测试 | Bug Bounty | 渗透测试 | Nuclei | 子域名枚举 | 端口扫描</sub>
+</p>
+
+---
 
 <p align="center">
   <b>🌗 明暗模式切换</b>
@@ -226,6 +246,12 @@ sudo ./update.sh
 - 仅在合法授权范围内使用
 - 遵守所在地区的法律法规
 - 承担因滥用产生的一切后果
+
+## 🌟 Star History
+
+如果这个项目对你有帮助，请给一个 ⭐ Star 支持一下！
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yyhuni/xingrin&type=Date)](https://star-history.com/#yyhuni/xingrin&Date)
 
 ## 📄 许可证
 
