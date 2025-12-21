@@ -153,7 +153,7 @@ def main():
     print(f"       scheduled_scan_name: {args.scheduled_scan_name}")
     
     # 2.5. 运行 Prefect 环境诊断（仅在 DEBUG 模式下）
-    if os.environ.get('PREFECT_DEBUG_MODE') == 'true':
+    if os.environ.get('DEBUG', '').lower() == 'true':
         diagnose_prefect_environment()
     
     # 3. 现在可以安全导入 Django 相关模块
