@@ -563,7 +563,7 @@ class TestDataGenerator:
         
         content_types = ['text/html; charset=utf-8', 'application/json', 'text/plain', 'text/css']
         
-        # 获取网站信息
+        # 获取网站信息（用于生成目录 URL）
         cur.execute("SELECT id, url, target_id FROM website LIMIT 15")
         websites = cur.fetchall()
         
@@ -577,12 +577,12 @@ class TestDataGenerator:
                 
                 cur.execute("""
                     INSERT INTO directory (
-                        url, website_id, target_id, status, content_length, words, lines,
-                        content_type, duration, discovered_at, deleted_at
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NULL)
+                        url, target_id, status, content_length, words, lines,
+                        content_type, duration, discovered_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (
-                    url, website_id, target_id,
+                    url, target_id,
                     random.choice([200, 301, 302, 403, 404, 500]),
                     random.randint(0, 100000), random.randint(0, 5000), random.randint(0, 500),
                     random.choice(content_types), random.randint(10000000, 5000000000)

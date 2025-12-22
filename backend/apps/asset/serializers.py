@@ -164,7 +164,6 @@ class EndpointListSerializer(serializers.ModelSerializer):
 class DirectorySerializer(serializers.ModelSerializer):
     """目录序列化器"""
     
-    website_url = serializers.CharField(source='website.url', read_only=True)
     discovered_at = serializers.DateTimeField(read_only=True)
     
     class Meta:
@@ -178,7 +177,6 @@ class DirectorySerializer(serializers.ModelSerializer):
             'lines',
             'content_type',
             'duration',
-            'website_url',
             'discovered_at',
         ]
         read_only_fields = fields
@@ -241,9 +239,6 @@ class WebsiteSnapshotSerializer(serializers.ModelSerializer):
 class DirectorySnapshotSerializer(serializers.ModelSerializer):
     """目录快照序列化器（用于扫描历史）"""
     
-    # DirectorySnapshot 当前不再关联 Website，这里暂时将 website_url 映射为自身的 url，保证字段兼容
-    website_url = serializers.CharField(source='url', read_only=True)
-    
     class Meta:
         model = DirectorySnapshot
         fields = [
@@ -255,7 +250,6 @@ class DirectorySnapshotSerializer(serializers.ModelSerializer):
             'lines',
             'content_type',
             'duration',
-            'website_url',
             'discovered_at',
         ]
         read_only_fields = fields

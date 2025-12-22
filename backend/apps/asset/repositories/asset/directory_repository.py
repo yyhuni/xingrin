@@ -37,7 +37,6 @@ class DjangoDirectoryRepository:
             # 直接从 DTO 字段构建 Model
             directories = [
                 Directory(
-                    website_id=item.website_id,
                     target_id=item.target_id,
                     url=item.url,
                     status=item.status,
@@ -54,9 +53,9 @@ class DjangoDirectoryRepository:
                 Directory.objects.bulk_create(
                     directories,
                     update_conflicts=True,
-                    unique_fields=['website', 'url'],
+                    unique_fields=['target', 'url'],
                     update_fields=[
-                        'target', 'status', 'content_length', 'words',
+                        'status', 'content_length', 'words',
                         'lines', 'content_type', 'duration'
                     ],
                     batch_size=1000
@@ -75,15 +74,7 @@ class DjangoDirectoryRepository:
 
     def get_by_target(self, target_id: int):
         """获取目标下的所有目录"""
-        return Directory.objects.filter(target_id=target_id).select_related('website').order_by('-discovered_at')
-
-    def get_by_website(self, website_id: int):
-        """获取指定站点的所有目录"""
-        return Directory.objects.filter(website_id=website_id).order_by('-discovered_at')
-
-    def count_by_website(self, website_id: int) -> int:
-        """统计指定站点的目录总数"""
-        return Directory.objects.filter(website_id=website_id).count()
+        return Directory.objects.filter(target_id=target_id).order_by('-discovered_at')
 
     def get_urls_for_export(self, target_id: int, batch_size: int = 1000) -> Iterator[str]:
         """流式导出目标下的所有目录 URL"""

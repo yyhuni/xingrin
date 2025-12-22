@@ -248,19 +248,11 @@ class Directory(models.Model):
     """
 
     id = models.AutoField(primary_key=True)
-    website = models.ForeignKey(
-        'Website',
-        on_delete=models.CASCADE,
-        related_name='directories',
-        help_text='所属的站点（主关联字段，表示所属关系，不能为空）'
-    )
     target = models.ForeignKey(
-        'targets.Target',  # 使用字符串引用
+        'targets.Target',
         on_delete=models.CASCADE,
         related_name='directories',
-        null=True,
-        blank=True,
-        help_text='所属的扫描目标（冗余字段，用于快速查询）'
+        help_text='所属的扫描目标'
     )
     
     url = models.CharField(
@@ -312,14 +304,13 @@ class Directory(models.Model):
             models.Index(fields=['-discovered_at']),
             models.Index(fields=['target']),     # 优化从target_id快速查找下面的目录
             models.Index(fields=['url']),        # URL索引，优化搜索和唯一约束
-            models.Index(fields=['website']),    # 站点索引，优化按站点查询
             models.Index(fields=['status']),     # 状态码索引，优化筛选
         ]
         constraints = [
-            # 普通唯一约束：website + url 组合唯一
+            # 普通唯一约束：target + url 组合唯一
             models.UniqueConstraint(
-                fields=['website', 'url'],
-                name='unique_directory_url_website'
+                fields=['target', 'url'],
+                name='unique_directory_url_target'
             ),
         ]
 

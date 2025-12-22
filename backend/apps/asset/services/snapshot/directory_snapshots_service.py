@@ -26,10 +26,9 @@ class DirectorySnapshotsService:
         2. 同步到资产表（去重，不包含 scan_id）
         
         Args:
-            items: 目录快照 DTO 列表（必须包含 website_id）
+            items: 目录快照 DTO 列表（必须包含 target_id）
         
         Raises:
-            ValueError: 如果 items 中的 website_id 为 None
             Exception: 数据库操作失败
         """
         if not items:

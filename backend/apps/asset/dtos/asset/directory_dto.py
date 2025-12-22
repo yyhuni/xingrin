@@ -7,7 +7,6 @@ from typing import Optional
 @dataclass
 class DirectoryDTO:
     """目录数据传输对象"""
-    website_id: int
     target_id: int
     url: str
     status: Optional[int] = None
