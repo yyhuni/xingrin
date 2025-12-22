@@ -127,7 +127,7 @@ export function createWebSiteColumns({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Host" />
       ),
-      size: 150,
+      size: 200,
       minSize: 100,
       maxSize: 250,
       cell: ({ row }) => (

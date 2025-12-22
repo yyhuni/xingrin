@@ -5,18 +5,9 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 import { TruncatedUrlCell } from "@/components/ui/truncated-cell"
-import { IconDots } from "@tabler/icons-react"
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
-import { toast } from "sonner"
 import type { Directory } from "@/types/directory.types"
 
 /**
@@ -303,39 +294,6 @@ export function createDirectoryColumns({
       cell: ({ row }) => {
         const date = row.getValue("discoveredAt") as string
         return <span className="text-muted-foreground">{formatDate(date)}</span>
-      },
-    },
-    // 操作列
-    {
-      id: "actions",
-      size: 60,
-      minSize: 60,
-      maxSize: 60,
-      enableResizing: false,
-      cell: ({ row }) => {
-        const directory = row.original
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">打开菜单</span>
-                <IconDots className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>操作</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(directory.url)
-                  toast.success("URL 已复制")
-                }}
-              >
-                复制 URL
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
       },
     },
   ]

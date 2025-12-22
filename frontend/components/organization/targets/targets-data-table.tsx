@@ -276,10 +276,10 @@ export function TargetsDataTable({
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
                           onDoubleClick={() => header.column.resetSize()}
-                          className={`absolute right-0 top-0 h-full w-2 cursor-col-resize select-none touch-none 
-                            bg-transparent hover:bg-primary/50 group-hover:bg-border
-                            ${header.column.getIsResizing() ? 'bg-primary' : ''}`}
-                        />
+                          className="absolute -right-2.5 top-0 h-full w-5 cursor-col-resize select-none touch-none bg-transparent flex justify-center"
+                        >
+                          <div className="w-1.5 h-full bg-transparent group-hover:bg-border" />
+                        </div>
                       )}
                     </TableHead>
                   )

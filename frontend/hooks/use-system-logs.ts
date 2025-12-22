@@ -11,7 +11,7 @@ export function useSystemLogs(options?: { lines?: number; enabled?: boolean }) {
     queryKey: ["system", "logs", { lines: options?.lines ?? null }],
     queryFn: () => systemLogService.getSystemLogs({ lines: options?.lines }),
     enabled: options?.enabled ?? true,
-    refetchInterval: 1000,
+    refetchInterval: 2000,
     refetchIntervalInBackground: true,
     retry: false,
   })
