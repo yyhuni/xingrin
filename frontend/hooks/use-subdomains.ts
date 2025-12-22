@@ -159,12 +159,9 @@ export function useDeleteSubdomain() {
     onSuccess: (response, id) => {
       toast.dismiss(`delete-subdomain-${id}`)
       
-      // 显示删除信息（单个删除 API 返回两阶段信息）
-      const { subdomainName, detail } = response
-      toast.success(`子域名 "${subdomainName}" 已成功删除`, {
-        description: `${detail.phase1}；${detail.phase2}`,
-        duration: 4000
-      })
+      // 显示删除成功信息
+      const { subdomainName } = response
+      toast.success(`子域名 "${subdomainName}" 已成功删除`)
       
       queryClient.invalidateQueries({ queryKey: ['subdomains'] })
       queryClient.invalidateQueries({ queryKey: ['targets'] })

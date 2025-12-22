@@ -157,12 +157,9 @@ export function useDeleteTarget() {
     onSuccess: (response, id) => {
       toast.dismiss(`delete-target-${id}`)
       
-      // 显示删除信息（单个删除 API 返回两阶段信息）
-      const { targetName, detail } = response
-      toast.success(`目标 "${targetName}" 已成功删除`, {
-        description: `${detail.phase1}；${detail.phase2}`,
-        duration: 4000
-      })
+      // 显示删除成功信息
+      const { targetName } = response
+      toast.success(`目标 "${targetName}" 已成功删除`)
       
       queryClient.invalidateQueries({ queryKey: ['targets'] })
       queryClient.invalidateQueries({ queryKey: ['organizations'] })

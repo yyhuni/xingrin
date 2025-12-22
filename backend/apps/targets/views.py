@@ -129,11 +129,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                 'organizationId': organization.id,
                 'organizationName': organization.name,
                 'deletedCount': result['soft_deleted_count'],
-                'deletedOrganizations': result['organization_names'],
-                'detail': {
-                    'phase1': '软删除完成，用户已看不到数据',
-                    'phase2': '硬删除任务已分发，将在后台执行'
-                }
+                'deletedOrganizations': result['organization_names']
             }, status=200)
         
         except Organization.DoesNotExist:
@@ -159,10 +155,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         功能:
         - 阶段 1：立即软删除（用户立即看不到数据）
         - 阶段 2：后台硬删除（真正删除数据和中间表）
-        - 立即返回 200 OK，硬删除任务已分发
         
         返回:
-        - 200 OK: 软删除完成，硬删除任务已分发
+        - 200 OK: 删除成功
         - 400 Bad Request: 参数错误
         - 404 Not Found: 未找到要删除的组织
         
@@ -189,11 +184,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             return Response({
                 'message': f"已删除 {result['soft_deleted_count']} 个组织",
                 'deletedCount': result['soft_deleted_count'],
-                'deletedOrganizations': result['organization_names'],
-                'detail': {
-                    'phase1': '软删除完成，用户已看不到数据',
-                    'phase2': '硬删除任务已分发，将在后台执行'
-                }
+                'deletedOrganizations': result['organization_names']
             }, status=200)
         
         except ValueError as e:
@@ -284,11 +275,7 @@ class TargetViewSet(viewsets.ModelViewSet):
                 'message': f'已删除目标: {target.name}',
                 'targetId': target.id,
                 'targetName': target.name,
-                'deletedCount': result['soft_deleted_count'],
-                'detail': {
-                    'phase1': '软删除完成，用户已看不到数据',
-                    'phase2': '硬删除任务已分发，将在后台执行'
-                }
+                'deletedCount': result['soft_deleted_count']
             }, status=200)
         
         except Target.DoesNotExist:
@@ -320,7 +307,7 @@ class TargetViewSet(viewsets.ModelViewSet):
         - 后台硬删除：使用分批删除策略处理大数据量
         
         返回:
-        - 200 OK: 软删除成功，硬删除任务已分发
+        - 200 OK: 删除成功
         - 400 Bad Request: 参数错误
         - 404 Not Found: 未找到目标
         
@@ -346,11 +333,7 @@ class TargetViewSet(viewsets.ModelViewSet):
             return Response({
                 'message': f"已删除 {result['soft_deleted_count']} 个目标",
                 'deletedCount': result['soft_deleted_count'],
-                'deletedTargets': result['target_names'],
-                'detail': {
-                    'phase1': '软删除完成，用户已看不到数据',
-                    'phase2': '硬删除任务已分发，将在后台执行'
-                }
+                'deletedTargets': result['target_names']
             }, status=200)
         
         except ValueError as e:

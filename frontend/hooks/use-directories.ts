@@ -116,12 +116,9 @@ export function useDeleteDirectory() {
     onSuccess: (response, id) => {
       toast.dismiss(`delete-directory-${id}`)
       
-      // 显示删除信息（单个删除 API 返回两阶段信息）
-      const { directoryUrl, detail } = response
-      toast.success(`目录 "${directoryUrl}" 已成功删除`, {
-        description: `${detail.phase1}；${detail.phase2}`,
-        duration: 4000
-      })
+      // 显示删除成功信息
+      const { directoryUrl } = response
+      toast.success(`目录 "${directoryUrl}" 已成功删除`)
       
       // 刷新相关查询
       queryClient.invalidateQueries({ queryKey: ['target-directories'] })

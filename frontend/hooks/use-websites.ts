@@ -116,12 +116,9 @@ export function useDeleteWebSite() {
     onSuccess: (response, id) => {
       toast.dismiss(`delete-website-${id}`)
       
-      // 显示删除信息（单个删除 API 返回两阶段信息）
-      const { websiteUrl, detail } = response
-      toast.success(`网站 "${websiteUrl}" 已成功删除`, {
-        description: `${detail.phase1}；${detail.phase2}`,
-        duration: 4000
-      })
+      // 显示删除成功信息
+      const { websiteUrl } = response
+      toast.success(`网站 "${websiteUrl}" 已成功删除`)
       
       // 刷新相关查询
       queryClient.invalidateQueries({ queryKey: ['target-websites'] })

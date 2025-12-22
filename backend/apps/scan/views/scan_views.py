@@ -79,11 +79,7 @@ class ScanViewSet(viewsets.ModelViewSet):
                 'message': f'已删除扫描任务: Scan #{scan.id}',
                 'scanId': scan.id,
                 'deletedCount': result['soft_deleted_count'],
-                'deletedScans': result['scan_names'],
-                'detail': {
-                    'phase1': '软删除完成，用户已看不到数据',
-                    'phase2': '硬删除任务已分发，将在后台执行'
-                }
+                'deletedScans': result['scan_names']
             }, status=status.HTTP_200_OK)
             
         except Scan.DoesNotExist:
@@ -303,11 +299,7 @@ class ScanViewSet(viewsets.ModelViewSet):
             return Response({
                 'message': f"已删除 {result['soft_deleted_count']} 个扫描任务",
                 'deletedCount': result['soft_deleted_count'],
-                'deletedScans': result['scan_names'],
-                'detail': {
-                    'phase1': '软删除完成，用户已看不到数据',
-                    'phase2': '硬删除任务已分发，将在后台执行'
-                }
+                'deletedScans': result['scan_names']
             }, status=status.HTTP_200_OK)
             
         except ValueError as e:
