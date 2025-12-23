@@ -394,12 +394,12 @@ def _parse_and_validate_line(line: str) -> Optional[HttpxRecord]:
         try:
             line_data = json.loads(line)
         except json.JSONDecodeError:
-            # logger.debug("跳过非 JSON 格式的行: %s", line[:100])
+            logger.info("跳过非 JSON 行: %s", line)
             return None
         
         # 步骤 2: 验证数据类型
         if not isinstance(line_data, dict):
-            logger.warning("解析后的数据不是字典类型，跳过: %s", str(line_data)[:100])
+            logger.info("跳过非字典数据")
             return None
         
         # 步骤 3: 创建记录
@@ -407,14 +407,14 @@ def _parse_and_validate_line(line: str) -> Optional[HttpxRecord]:
         
         # 步骤 4: 验证必要字段
         if not record.url:
-            logger.debug("URL 为空，跳过")
+            logger.info("URL 为空，跳过 - 数据: %s", str(line_data)[:200])
             return None
         
         # 返回有效记录
         return record
     
-    except Exception as e:
-        logger.error("解析行数据异常: %s - 数据: %s", e, line[:100])
+    except Exception:
+        logger.info("跳过无法解析的行: %s", line[:100])
         return None
 
 

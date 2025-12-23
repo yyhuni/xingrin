@@ -83,12 +83,12 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
         try:
             line_data = json.loads(line)
         except json.JSONDecodeError:
-            # logger.debug("跳过非 JSON 格式的行: %s", line[:100])
+            logger.info("跳过非 JSON 行: %s", line)
             return None
         
         # 验证数据类型
         if not isinstance(line_data, dict):
-            logger.warning("解析后的数据不是字典类型，跳过: %s", str(line_data)[:100])
+            logger.info("跳过非字典数据")
             return None
         
         # 获取必要字段
@@ -96,7 +96,7 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
         status_code = line_data.get('status_code')
         
         if not url:
-            logger.debug("URL 为空，跳过")
+            logger.info("URL 为空，跳过 - 数据: %s", str(line_data)[:200])
             return None
         
         # 只保存存活的 URL（2xx 或 3xx）
@@ -118,8 +118,8 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
             logger.debug("URL 不存活（状态码: %s），跳过: %s", status_code, url)
             return None
     
-    except Exception as e:
-        logger.error("解析行数据异常: %s - 数据: %s", e, line[:100] if line else 'empty')
+    except Exception:
+        logger.info("跳过无法解析的行: %s", line[:100] if line else 'empty')
         return None
 
 

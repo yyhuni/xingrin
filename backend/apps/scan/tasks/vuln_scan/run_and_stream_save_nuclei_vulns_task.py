@@ -107,12 +107,15 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
             return None
 
         try:
-            data = json.loads(raw)
+            # strict=False 允许 JSON 中包含控制字符（如换行符、制表符等）
+            # Nuclei 输出的 response 字段可能包含原始 HTTP 响应，其中有控制字符
+            data = json.loads(raw, strict=False)
         except json.JSONDecodeError:
+            logger.info("跳过非 JSON 行: %s", raw)
             return None
 
         if not isinstance(data, dict):
-            logger.warning("解析后的数据不是字典类型，跳过: %s", str(data)[:100])
+            logger.info("跳过非字典数据")
             return None
 
         # 提取 info 字段
@@ -123,7 +126,7 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
         # URL: 优先用 matched-at，其次用 host
         url = data.get("matched-at") or data.get("host") or ""
         if not url:
-            logger.debug("Nuclei 记录缺少 matched-at 或 host 字段，跳过")
+            logger.info("跳过缺少 URL 的记录: %s", data.get("template-id", "unknown"))
             return None
 
         # 严重性
@@ -145,8 +148,8 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
             "raw_output": data,  # 存储解析后的 dict，而不是原始字符串
         }
 
-    except Exception as e:
-        logger.error("解析 Nuclei 行数据异常: %s - 数据: %s", e, line[:100])
+    except Exception:
+        logger.info("跳过无法解析的行: %s", line[:100])
         return None
 
 

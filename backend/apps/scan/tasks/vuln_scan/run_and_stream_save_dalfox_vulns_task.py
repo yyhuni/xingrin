@@ -112,17 +112,17 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
         try:
             data = json.loads(raw)
         except json.JSONDecodeError:
-            # logger.debug("跳过非 JSON 格式的行: %s", raw[:100])
+            logger.info("跳过非 JSON 行: %s", raw)
             return None
 
         if not isinstance(data, dict):
-            logger.warning("解析后的数据不是字典类型，跳过: %s", str(data)[:100])
+            logger.info("跳过非字典数据")
             return None
 
         # Dalfox 输出中的 URL 字段为 data
         url = (data.get("data") or "").strip()
         if not url:
-            logger.debug("Dalfox 记录缺少 data(URL) 字段，跳过")
+            logger.info("跳过缺少 URL 的记录")
             return None
 
         severity = _map_severity(data.get("severity"))
@@ -146,8 +146,8 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
             "raw_output": data,  # 存储解析后的 dict，而不是原始字符串
         }
 
-    except Exception as e:
-        logger.error("解析 Dalfox 行数据异常: %s - 数据: %s", e, line[:100])
+    except Exception:
+        logger.info("跳过无法解析的行: %s", line[:100])
         return None
 
 

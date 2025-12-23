@@ -212,12 +212,12 @@ def _parse_and_validate_line(line: str) -> Optional[PortScanRecord]:
         try:
             line_data = json.loads(line)
         except json.JSONDecodeError:
-            # logger.debug("跳过非 JSON 格式的行: %s", line[:100])
+            logger.info("跳过非 JSON 行: %s", line)
             return None
         
         # 步骤 2: 验证数据类型
         if not isinstance(line_data, dict):
-            logger.warning("解析后的数据不是字典类型，跳过: %s", str(line_data)[:100])
+            logger.info("跳过非字典数据")
             return None
         
         # 步骤 3: 提取必要字段
@@ -234,10 +234,7 @@ def _parse_and_validate_line(line: str) -> Optional[PortScanRecord]:
 
         # 步骤 4: 验证字段不为空
         if not host or not ip or port is None:
-            logger.warning(
-                "缺少必要字段，跳过: host=%s, ip=%s, port=%s",
-                host, ip, port
-            )
+            logger.info("跳过缺少必要字段的记录")
             return None
         
         # 步骤 5: 验证端口号有效性
@@ -252,8 +249,8 @@ def _parse_and_validate_line(line: str) -> Optional[PortScanRecord]:
             'port': port_num,
         }
     
-    except Exception as e:
-        logger.error("解析行数据异常: %s - 数据: %s", e, line[:100])
+    except Exception:
+        logger.info("跳过无法解析的行: %s", line[:100])
         return None
 
 
@@ -318,14 +315,10 @@ def _parse_naabu_stream_output(
                     )
                     last_log_time = current_time
             
-            except (json.JSONDecodeError, ValueError, KeyError) as e:
-                # 数据解析错误（可恢复）：记录警告但继续处理后续数据
-                # 这类错误通常是单条数据格式问题，不应影响整体流程
+            except (json.JSONDecodeError, ValueError, KeyError):
+                # 数据解析错误（可恢复）：记录信息但继续处理后续数据
                 error_lines += 1
-                logger.warning(
-                    "数据解析错误，跳过此行 (行号: %d) - 错误: %s, 原始数据: %s",
-                    total_lines, e, line[:100]  # 只记录前100字符避免日志过大
-                )
+                logger.info("跳过无法解析的行: %s", line)
                 continue
                 
     except subprocess.TimeoutExpired as e:

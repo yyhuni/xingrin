@@ -12,7 +12,7 @@ def calculate_timeout_by_line_count(
     tool_config: dict,
     file_path: str,
     base_per_time: int = 1,
-    min_timeout: int = 60,
+    min_timeout: int = 600,
 ) -> int:
     """
     根据文件行数自动计算超时时间
@@ -21,7 +21,7 @@ def calculate_timeout_by_line_count(
         tool_config: 工具配置（保留参数，未来可能用于更复杂的计算）
         file_path: 输入文件路径
         base_per_time: 每行的基础时间（秒）
-        min_timeout: 最小超时时间（秒），默认60秒
+        min_timeout: 最小超时时间（秒），默认600秒（10分钟）
 
     Returns:
         int: 计算出的超时时间（秒），不低于 min_timeout
