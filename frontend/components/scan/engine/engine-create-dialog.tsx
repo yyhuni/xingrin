@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { useTheme } from "next-themes"
+import { useColorTheme } from "@/hooks/use-color-theme"
 
 interface EngineCreateDialogProps {
   open: boolean
@@ -37,7 +37,7 @@ export function EngineCreateDialog({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isEditorReady, setIsEditorReady] = useState(false)
   const [yamlError, setYamlError] = useState<{ message: string; line?: number; column?: number } | null>(null)
-  const { theme } = useTheme()
+  const { currentTheme } = useColorTheme()
   const editorRef = React.useRef<any>(null)
 
   // 默认 YAML 模板
@@ -202,7 +202,7 @@ export function EngineCreateDialog({
                     value={yamlContent}
                     onChange={handleEditorChange}
                     onMount={handleEditorDidMount}
-                    theme={theme === "dark" ? "vs-dark" : "light"}
+                    theme={currentTheme.isDark ? "vs-dark" : "light"}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,

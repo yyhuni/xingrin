@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { useTheme } from "next-themes"
+import { useColorTheme } from "@/hooks/use-color-theme"
 import { useWordlistContent, useUpdateWordlistContent } from "@/hooks/use-wordlists"
 import type { Wordlist } from "@/types/wordlist.types"
 
@@ -35,7 +35,7 @@ export function WordlistEditDialog({
   const [content, setContent] = useState("")
   const [hasChanges, setHasChanges] = useState(false)
   const [isEditorReady, setIsEditorReady] = useState(false)
-  const { theme } = useTheme()
+  const { currentTheme } = useColorTheme()
   const editorRef = useRef<any>(null)
 
   // 获取字典内容
@@ -145,7 +145,7 @@ export function WordlistEditDialog({
                     value={content}
                     onChange={handleEditorChange}
                     onMount={handleEditorDidMount}
-                    theme={theme === "dark" ? "vs-dark" : "light"}
+                    theme={currentTheme.isDark ? "vs-dark" : "light"}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,

@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { useTheme } from "next-themes"
+import { useColorTheme } from "@/hooks/use-color-theme"
 import type { ScanEngine } from "@/types/engine.types"
 
 interface EngineEditDialogProps {
@@ -40,7 +40,7 @@ export function EngineEditDialog({
   const [hasChanges, setHasChanges] = useState(false)
   const [isEditorReady, setIsEditorReady] = useState(false)
   const [yamlError, setYamlError] = useState<{ message: string; line?: number; column?: number } | null>(null)
-  const { theme } = useTheme()
+  const { currentTheme } = useColorTheme()
   const editorRef = useRef<any>(null)
 
   // 生成示例 YAML 配置
@@ -276,7 +276,7 @@ url_fetch:
                   value={yamlContent}
                   onChange={handleEditorChange}
                   onMount={handleEditorDidMount}
-                  theme={theme === "dark" ? "vs-dark" : "light"}
+                  theme={currentTheme.isDark ? "vs-dark" : "light"}
                   options={{
                     minimap: { enabled: false },
                     fontSize: 13,

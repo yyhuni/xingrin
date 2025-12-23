@@ -90,6 +90,7 @@ export function useDeleteScheduledScan() {
 
 /**
  * 切换定时扫描启用状态
+ * 使用乐观更新，避免重新获取数据导致列表重新排序
  */
 export function useToggleScheduledScan() {
   const queryClient = useQueryClient()
@@ -97,11 +98,41 @@ export function useToggleScheduledScan() {
   return useMutation({
     mutationFn: ({ id, isEnabled }: { id: number; isEnabled: boolean }) =>
       toggleScheduledScan(id, isEnabled),
+    onMutate: async ({ id, isEnabled }) => {
+      // 取消正在进行的查询
+      await queryClient.cancelQueries({ queryKey: ['scheduled-scans'] })
+
+      // 获取当前缓存的所有 scheduled-scans 查询
+      const previousQueries = queryClient.getQueriesData({ queryKey: ['scheduled-scans'] })
+
+      // 乐观更新所有匹配的查询缓存
+      queryClient.setQueriesData(
+        { queryKey: ['scheduled-scans'] },
+        (old: any) => {
+          if (!old?.results) return old
+          return {
+            ...old,
+            results: old.results.map((item: any) =>
+              item.id === id ? { ...item, isEnabled } : item
+            ),
+          }
+        }
+      )
+
+      // 返回上下文用于回滚
+      return { previousQueries }
+    },
     onSuccess: (result) => {
       toast.success(result.message)
-      queryClient.invalidateQueries({ queryKey: ['scheduled-scans'] })
+      // 不调用 invalidateQueries，保持当前排序
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      // 回滚到之前的状态
+      if (context?.previousQueries) {
+        context.previousQueries.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data)
+        })
+      }
       toast.error(`操作失败: ${error.message}`)
     },
   })

@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react"
 import { Settings, Search, Pencil, Trash2, Check, X, Plus } from "lucide-react"
 import * as yaml from "js-yaml"
 import Editor from "@monaco-editor/react"
-import { useTheme } from "next-themes"
+import { useColorTheme } from "@/hooks/use-color-theme"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -86,7 +86,7 @@ export default function ScanEnginePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [engineToDelete, setEngineToDelete] = useState<ScanEngine | null>(null)
 
-  const { theme } = useTheme()
+  const { currentTheme } = useColorTheme()
 
   // API Hooks
   const { data: engines = [], isLoading } = useEngines()
@@ -295,7 +295,7 @@ export default function ScanEnginePage() {
                           wordWrap: "on",
                           padding: { top: 12, bottom: 12 },
                         }}
-                        theme={theme === "dark" ? "vs-dark" : "light"}
+                        theme={currentTheme.isDark ? "vs-dark" : "light"}
                       />
                     </div>
                   </div>

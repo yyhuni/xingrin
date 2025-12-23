@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // 允许局域网 IP 访问开发服务器（消除跨域警告）
+  allowedDevOrigins: ['192.168.*.*', '10.*.*.*', '172.16.*.*'],
 
   async rewrites() {
     // Docker 环境使用 server 服务名，本地开发使用 localhost

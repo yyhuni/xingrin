@@ -16,7 +16,7 @@ import {
   Tag,
   User,
 } from "lucide-react"
-import { useTheme } from "next-themes"
+import { useColorTheme } from "@/hooks/use-color-theme"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -91,7 +91,7 @@ export default function NucleiRepoDetailPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [editorValue, setEditorValue] = useState<string>("")
 
-  const { theme } = useTheme()
+  const { currentTheme } = useColorTheme()
 
   const numericRepoId = repoId ? Number(repoId) : null
 
@@ -321,7 +321,7 @@ export default function NucleiRepoDetailPage() {
                     readOnly: true,
                     padding: { top: 16 },
                   }}
-                  theme={theme === "dark" ? "vs-dark" : "light"}
+                  theme={currentTheme.isDark ? "vs-dark" : "light"}
                 />
               </div>
 

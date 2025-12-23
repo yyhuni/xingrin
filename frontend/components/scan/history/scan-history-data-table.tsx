@@ -286,7 +286,7 @@ export function ScanHistoryDataTable({
 
       {/* 表格容器 */}
       <div className="rounded-md border overflow-x-auto">
-        <Table className="w-full" style={{ minWidth: table.getCenterTotalSize() }}>
+        <Table style={{ minWidth: table.getCenterTotalSize() }}>
           {/* 表头 */}
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -314,9 +314,9 @@ export function ScanHistoryDataTable({
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
                           onDoubleClick={() => header.column.resetSize()}
-                          className="absolute -right-2.5 top-0 h-full w-5 cursor-col-resize select-none touch-none bg-transparent flex justify-center"
+                          className="absolute right-0 top-0 h-full w-4 cursor-col-resize select-none touch-none z-10"
                         >
-                          <div className="w-1.5 h-full bg-transparent group-hover:bg-border" />
+                          <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-border" />
                         </div>
                       )}
                     </TableHead>

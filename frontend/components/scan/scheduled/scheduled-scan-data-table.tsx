@@ -44,14 +44,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 
 import type { ScheduledScan } from "@/types/scheduled-scan.types"
 
@@ -246,18 +238,24 @@ export function ScheduledScanDataTable({
 
       {/* 表格容器 */}
       <div className="rounded-md border overflow-x-auto">
-        <Table style={{ minWidth: table.getCenterTotalSize() }}>
+        <table 
+          className="caption-bottom text-sm border-collapse"
+          style={{ width: table.getTotalSize() }}
+        >
           {/* 表头 */}
-          <TableHeader>
+          <thead className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <tr 
+                key={headerGroup.id}
+                className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead 
+                    <th 
                       key={header.id} 
                       colSpan={header.colSpan}
                       style={{ width: header.getSize() }}
-                      className="relative group"
+                      className="h-10 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap relative group"
                     >
                       {header.isPlaceholder
                         ? null
@@ -270,49 +268,53 @@ export function ScheduledScanDataTable({
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
                           onDoubleClick={() => header.column.resetSize()}
-                          className="absolute -right-2.5 top-0 h-full w-8 cursor-col-resize select-none touch-none bg-transparent flex justify-center"
+                          className="absolute right-0 top-0 h-full w-4 cursor-col-resize select-none touch-none z-10"
                         >
-                          <div className="w-1.5 h-full bg-transparent group-hover:bg-border" />
+                          <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-border" />
                         </div>
                       )}
-                    </TableHead>
+                    </th>
                   )
                 })}
-              </TableRow>
+              </tr>
             ))}
-          </TableHeader>
+          </thead>
 
           {/* 表体 */}
-          <TableBody>
+          <tbody className="[&_tr:last-child]:border-0">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <tr
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group"
+                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted group"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                    <td 
+                      key={cell.id} 
+                      style={{ width: cell.column.getSize() }}
+                      className="p-2 align-middle whitespace-nowrap"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
-                    </TableCell>
+                    </td>
                   ))}
-                </TableRow>
+                </tr>
               ))
             ) : (
-              <TableRow>
-                <TableCell
+              <tr className="border-b transition-colors">
+                <td
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center p-2 align-middle"
                 >
                   暂无数据
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
       {/* 分页控制 */}
