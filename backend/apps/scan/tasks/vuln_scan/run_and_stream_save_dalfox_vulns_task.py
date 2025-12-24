@@ -112,7 +112,7 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
         try:
             data = json.loads(raw, strict=False)
         except json.JSONDecodeError:
-            logger.info("跳过非 JSON 行: %s", raw)
+            # logger.info("跳过非 JSON 行: %s", raw)
             return None
 
         if not isinstance(data, dict):

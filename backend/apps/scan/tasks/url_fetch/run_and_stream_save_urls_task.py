@@ -83,7 +83,7 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
         try:
             line_data = json.loads(line, strict=False)
         except json.JSONDecodeError:
-            logger.info("跳过非 JSON 行: %s", line)
+            # logger.info("跳过非 JSON 行: %s", line)
             return None
         
         # 验证数据类型

@@ -111,7 +111,7 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
             # Nuclei 输出的 response 字段可能包含原始 HTTP 响应，其中有控制字符
             data = json.loads(raw, strict=False)
         except json.JSONDecodeError:
-            logger.info("跳过非 JSON 行: %s", raw)
+            # logger.info("跳过非 JSON 行: %s", raw)
             return None
 
         if not isinstance(data, dict):
