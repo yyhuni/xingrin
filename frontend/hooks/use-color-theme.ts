@@ -15,6 +15,7 @@ export const COLOR_THEMES = [
   { id: 'clean-slate', name: 'Clean Slate', color: '#3b82f6', colors: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'], isDark: false },
   { id: 'cosmic-night', name: 'Cosmic Night', color: '#6366f1', colors: ['#1e1b4b', '#6366f1', '#818cf8', '#a5b4fc'], isDark: true },
   { id: 'cyberpunk-1', name: 'Cyberpunk', color: '#00ffff', colors: ['#0f172a', '#00ffff', '#a855f7', '#ec4899'], isDark: true },
+  { id: 'eva-01', name: 'EVA Unit-01', color: '#9333ea', colors: ['#1a0a2e', '#9333ea', '#22c55e', '#84cc16'], isDark: true },
 ] as const
 
 export type ColorThemeId = typeof COLOR_THEMES[number]['id']

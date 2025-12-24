@@ -1,0 +1,59 @@
+/**
+ * EVA-01 初号机主题 - 新世纪福音战士（暗色）
+ * 经典紫色和荧光绿配色
+ */
+[data-theme="eva-01"],
+[data-theme="eva-01"].dark {
+  --background: oklch(0.12 0.04 300);
+  --foreground: oklch(0.92 0.02 300);
+  --card: oklch(0.18 0.05 300);
+  --card-foreground: oklch(0.92 0.02 300);
+  --popover: oklch(0.18 0.05 300);
+  --popover-foreground: oklch(0.92 0.02 300);
+  --primary: oklch(0.50 0.22 300);
+  --primary-foreground: oklch(0.95 0.01 300);
+  --secondary: oklch(0.75 0.25 145);
+  --secondary-foreground: oklch(0.15 0.03 145);
+  --muted: oklch(0.25 0.06 300);
+  --muted-foreground: oklch(0.65 0.04 300);
+  --accent: oklch(0.25 0.06 300);
+  --accent-foreground: oklch(0.65 0.25 300);
+  --destructive: oklch(0.55 0.25 25);
+  --destructive-foreground: oklch(0.95 0.01 25);
+  --border: oklch(0.30 0.08 300);
+  --input: oklch(0.22 0.06 300);
+  --ring: oklch(0.50 0.22 300);
+  --chart-1: oklch(0.50 0.22 300);
+  --chart-2: oklch(0.80 0.28 145);
+  --chart-3: oklch(0.55 0.25 25);
+  --chart-4: oklch(0.70 0.18 60);
+  --chart-5: oklch(0.60 0.20 250);
+  --sidebar: oklch(0.10 0.035 300);
+  --sidebar-foreground: oklch(0.92 0.02 300);
+  --sidebar-primary: oklch(0.50 0.22 300);
+  --sidebar-primary-foreground: oklch(0.95 0.01 300);
+  --sidebar-accent: oklch(0.80 0.28 145);
+  --sidebar-accent-foreground: oklch(0.12 0.04 145);
+  --sidebar-border: oklch(0.25 0.06 300);
+  --sidebar-ring: oklch(0.50 0.22 300);
+  --font-sans: Geist, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Geist Mono, monospace;
+  --radius: 0.15rem;
+  --shadow-x: 0px;
+  --shadow-y: 1px;
+  --shadow-blur: 2px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.20;
+  --shadow-color: hsl(300 40% 5%);
+  --shadow-2xs: 0px 1px 2px 0px hsl(300 40% 5% / 0.10);
+  --shadow-xs: 0px 1px 2px 0px hsl(300 40% 5% / 0.10);
+  --shadow-sm: 0px 1px 2px 0px hsl(300 40% 5% / 0.20), 0px 1px 2px -1px hsl(300 40% 5% / 0.20);
+  --shadow: 0px 1px 2px 0px hsl(300 40% 5% / 0.20), 0px 1px 2px -1px hsl(300 40% 5% / 0.20);
+  --shadow-md: 0px 1px 2px 0px hsl(300 40% 5% / 0.20), 0px 2px 4px -1px hsl(300 40% 5% / 0.20);
+  --shadow-lg: 0px 1px 2px 0px hsl(300 40% 5% / 0.20), 0px 4px 6px -1px hsl(300 40% 5% / 0.20);
+  --shadow-xl: 0px 1px 2px 0px hsl(300 40% 5% / 0.20), 0px 8px 10px -1px hsl(300 40% 5% / 0.20);
+  --shadow-2xl: 0px 1px 2px 0px hsl(300 40% 5% / 0.50);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
