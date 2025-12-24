@@ -11,7 +11,7 @@ import type { Port } from "./ip-address.types"
 export interface Subdomain {
   id: number
   name: string
-  discoveredAt: string  // 发现时间
+  createdAt: string  // 创建时间
 }
 
 // 获取子域名列表请求参数

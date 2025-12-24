@@ -55,11 +55,11 @@ class DjangoSubdomainRepository:
     
     def get_all(self):
         """获取所有子域名"""
-        return Subdomain.objects.all().order_by('-discovered_at')
+        return Subdomain.objects.all().order_by('-created_at')
 
     def get_by_target(self, target_id: int):
         """获取目标下的所有子域名"""
-        return Subdomain.objects.filter(target_id=target_id).order_by('-discovered_at')
+        return Subdomain.objects.filter(target_id=target_id).order_by('-created_at')
     
     def count_by_target(self, target_id: int) -> int:
         """统计目标下的域名数量"""

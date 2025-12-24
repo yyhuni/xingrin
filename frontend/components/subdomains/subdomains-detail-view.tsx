@@ -130,11 +130,11 @@ export function SubdomainsDetailView({
   // 生成 CSV 内容
   const generateCSV = (items: Subdomain[]): string => {
     const BOM = '\ufeff'
-    const headers = ['name', 'discovered_at']
+    const headers = ['name', 'created_at']
     
     const rows = items.map(item => [
       escapeCSV(item.name),
-      escapeCSV(formatDateForCSV(item.discoveredAt))
+      escapeCSV(formatDateForCSV(item.createdAt))
     ].join(','))
     
     return BOM + [headers.join(','), ...rows].join('\n')
@@ -208,7 +208,7 @@ export function SubdomainsDetailView({
     return subdomainsData.results.map((item: any) => ({
       id: item.id,
       name: item.name,
-      discoveredAt: item.discoveredAt,  // 发现时间（后端已转换为 camelCase）
+      createdAt: item.createdAt,  // 创建时间（后端已转换为 camelCase）
     }))
   }, [subdomainsData])
 

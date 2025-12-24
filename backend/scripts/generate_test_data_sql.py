@@ -406,7 +406,7 @@ class TestDataGenerator:
             for prefix in selected:
                 subdomain_name = f'{prefix}.{target_name}'
                 cur.execute("""
-                    INSERT INTO subdomain (name, target_id, discovered_at)
+                    INSERT INTO subdomain (name, target_id, created_at)
                     VALUES (%s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (subdomain_name, target_id))

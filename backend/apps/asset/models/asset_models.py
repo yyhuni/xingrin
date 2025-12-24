@@ -22,15 +22,15 @@ class Subdomain(models.Model):
         help_text='所属的扫描目标（主关联字段，表示所属关系，不能为空）'
     )
     name = models.CharField(max_length=1000, help_text='子域名名称')
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='首次发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
 
     class Meta:
         db_table = 'subdomain'
         verbose_name = '子域名'
         verbose_name_plural = '子域名'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
             models.Index(fields=['name', 'target']),  # 复合索引，优化 get_by_names_and_target_id 批量查询
             models.Index(fields=['target']),     # 优化从target_id快速查找下面的子域名
             models.Index(fields=['name']),            # 优化从name快速查找子域名，搜索场景
