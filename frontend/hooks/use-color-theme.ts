@@ -3,6 +3,7 @@
  * 管理主题色（不是亮暗模式）
  */
 import { useEffect, useState, useCallback } from 'react'
+import { useTheme } from 'next-themes'
 
 // 可用的颜色主题（colors 数组用于预览，isDark 表示是否为暗色主题）
 export const COLOR_THEMES = [
@@ -29,23 +30,12 @@ function getStoredTheme(): ColorThemeId {
 }
 
 /**
- * 应用颜色主题到 DOM
+ * 应用颜色主题到 DOM（仅设置 data-theme）
  */
-function applyTheme(themeId: ColorThemeId) {
+function applyThemeAttribute(themeId: ColorThemeId) {
   if (typeof window === 'undefined') return
-  
   const root = document.documentElement
   root.setAttribute('data-theme', themeId)
-  
-  // 根据主题的 isDark 属性设置 dark class
-  const themeConfig = COLOR_THEMES.find(t => t.id === themeId)
-  if (themeConfig?.isDark) {
-    root.classList.add('dark')
-  } else {
-    root.classList.remove('dark')
-  }
-  
-  console.log('应用主题:', themeId, '当前 html:', root.getAttribute('data-theme'), root.className)
 }
 
 /**
@@ -54,21 +44,28 @@ function applyTheme(themeId: ColorThemeId) {
 export function useColorTheme() {
   const [theme, setThemeState] = useState<ColorThemeId>('vercel')
   const [mounted, setMounted] = useState(false)
+  const { setTheme: setNextTheme } = useTheme()
 
   // 初始化
   useEffect(() => {
     const stored = getStoredTheme()
     setThemeState(stored)
-    applyTheme(stored)
+    applyThemeAttribute(stored)
+    // 同步 next-themes 亮暗模式
+    const themeConfig = COLOR_THEMES.find(t => t.id === stored)
+    setNextTheme(themeConfig?.isDark ? 'dark' : 'light')
     setMounted(true)
-  }, [])
+  }, [setNextTheme])
 
   // 切换主题
   const setTheme = useCallback((newTheme: ColorThemeId) => {
     setThemeState(newTheme)
     localStorage.setItem(STORAGE_KEY, newTheme)
-    applyTheme(newTheme)
-  }, [])
+    applyThemeAttribute(newTheme)
+    // 同步 next-themes 亮暗模式
+    const themeConfig = COLOR_THEMES.find(t => t.id === newTheme)
+    setNextTheme(themeConfig?.isDark ? 'dark' : 'light')
+  }, [setNextTheme])
 
   // 获取当前主题信息
   const currentTheme = COLOR_THEMES.find(t => t.id === theme) || COLOR_THEMES[0]
