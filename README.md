@@ -27,7 +27,7 @@
 
 
 <p align="center">
-  <b>🎨 多种 UI 主题</b>
+  <b>🎨 现代化 UI </b>
 </p>
 
 <p align="center">
