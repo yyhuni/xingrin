@@ -483,13 +483,23 @@ def _run_scans_concurrently(
             logger.warning("没有有效的扫描任务")
             continue
         
-        # 使用 ThreadPoolTaskRunner 并发执行
-        logger.info("开始并发提交 %d 个扫描任务...", len(scan_params_list))
+        # ============================================================
+        # 分批执行策略：控制实际并发的 ffuf 进程数
+        # ============================================================
+        total_tasks = len(scan_params_list)
+        logger.info("开始分批执行 %d 个扫描任务（每批 %d 个）...", total_tasks, max_workers)
         
-        with ThreadPoolTaskRunner(max_workers=max_workers) as task_runner:
-            # 提交所有任务
+        batch_num = 0
+        for batch_start in range(0, total_tasks, max_workers):
+            batch_end = min(batch_start + max_workers, total_tasks)
+            batch_params = scan_params_list[batch_start:batch_end]
+            batch_num += 1
+            
+            logger.info("执行第 %d 批任务（%d-%d/%d）...", batch_num, batch_start + 1, batch_end, total_tasks)
+            
+            # 提交当前批次的任务（非阻塞，立即返回 future）
             futures = []
-            for params in scan_params_list:
+            for params in batch_params:
                 future = run_and_stream_save_directories_task.submit(
                     cmd=params['command'],
                     tool_name=tool_name,
@@ -504,12 +514,10 @@ def _run_scans_concurrently(
                 )
                 futures.append((params['idx'], params['site_url'], future))
             
-            logger.info("✓ 已提交 %d 个扫描任务，等待完成...", len(futures))
-            
-            # 等待所有任务完成并聚合结果
+            # 等待当前批次所有任务完成（阻塞，确保本批完成后再启动下一批）
             for idx, site_url, future in futures:
                 try:
-                    result = future.result()
+                    result = future.result()  # 阻塞等待单个任务完成
                     directories_found = result.get('created_directories', 0)
                     total_directories += directories_found
                     processed_sites_count += 1
@@ -521,7 +529,6 @@ def _run_scans_concurrently(
                     
                 except Exception as exc:
                     failed_sites.append(site_url)
-                    # 判断是否为超时异常
                     if 'timeout' in str(exc).lower() or isinstance(exc, subprocess.TimeoutExpired):
                         logger.warning(
                             "⚠️ [%d/%d] 站点扫描超时: %s - 错误: %s",
