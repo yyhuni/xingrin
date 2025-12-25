@@ -26,11 +26,11 @@ import type { VulnerabilitySeverity } from "@/types/vulnerability.types"
 
 // 统一的漏洞严重程度颜色配置（与图表一致）
 const severityConfig: Record<VulnerabilitySeverity, { label: string; className: string }> = {
-  critical: { label: "严重", className: "bg-[#da3633]/10 text-[#da3633] border border-[#da3633]/20 dark:text-[#f85149]" },
-  high: { label: "高危", className: "bg-[#d29922]/10 text-[#d29922] border border-[#d29922]/20" },
-  medium: { label: "中危", className: "bg-[#d4a72c]/10 text-[#d4a72c] border border-[#d4a72c]/20" },
-  low: { label: "低危", className: "bg-[#238636]/10 text-[#238636] border border-[#238636]/20 dark:text-[#3fb950]" },
-  info: { label: "信息", className: "bg-[#848d97]/10 text-[#848d97] border border-[#848d97]/20" },
+  critical: { label: "Critical", className: "bg-[#da3633]/10 text-[#da3633] border border-[#da3633]/20 dark:text-[#f85149]" },
+  high: { label: "High", className: "bg-[#d29922]/10 text-[#d29922] border border-[#d29922]/20" },
+  medium: { label: "Medium", className: "bg-[#d4a72c]/10 text-[#d4a72c] border border-[#d4a72c]/20" },
+  low: { label: "Low", className: "bg-[#238636]/10 text-[#238636] border border-[#238636]/20 dark:text-[#3fb950]" },
+  info: { label: "Info", className: "bg-[#848d97]/10 text-[#848d97] border border-[#848d97]/20" },
 }
 
 function formatTime(dateStr: string) {

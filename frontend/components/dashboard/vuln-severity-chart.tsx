@@ -20,26 +20,26 @@ import { Skeleton } from "@/components/ui/skeleton"
 // 漏洞严重程度使用固定语义化颜色
 const chartConfig = {
   count: {
-    label: "数量",
+    label: "Count",
   },
   critical: {
-    label: "严重",
+    label: "Critical",
     color: "#dc2626", // 红色
   },
   high: {
-    label: "高危",
+    label: "High",
     color: "#f97316", // 橙色
   },
   medium: {
-    label: "中危",
+    label: "Medium",
     color: "#eab308", // 黄色
   },
   low: {
-    label: "低危",
+    label: "Low",
     color: "#3b82f6", // 蓝色
   },
   info: {
-    label: "信息",
+    label: "Info",
     color: "#6b7280", // 灰色
   },
 } satisfies ChartConfig
