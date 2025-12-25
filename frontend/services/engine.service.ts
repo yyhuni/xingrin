@@ -9,9 +9,11 @@ import type { ScanEngine } from '@/types/engine.types'
  * 获取引擎列表
  */
 export async function getEngines(): Promise<ScanEngine[]> {
-  const response = await apiClient.get('/engines/')
+  // 引擎数量通常不多，获取全部
+  const response = await apiClient.get('/engines/', {
+    params: { pageSize: 1000 }
+  })
   // 后端返回分页数据: { results: [...], total, page, pageSize, totalPages }
-  // 这里暂时返回 results 数组
   return response.data.results || response.data
 }
 

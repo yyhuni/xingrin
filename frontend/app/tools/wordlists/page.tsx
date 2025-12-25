@@ -32,7 +32,7 @@ export default function WordlistsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [wordlistToDelete, setWordlistToDelete] = useState<Wordlist | null>(null)
 
-  const { data, isLoading } = useWordlists({ page: 1, pageSize: 100 })
+  const { data, isLoading } = useWordlists({ page: 1, pageSize: 1000 })
   const deleteMutation = useDeleteWordlist()
 
   // 过滤字典列表

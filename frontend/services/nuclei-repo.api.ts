@@ -58,7 +58,10 @@ interface PaginatedResponse<T> {
 export const nucleiRepoApi = {
   /** 获取仓库列表 */
   listRepos: async (): Promise<NucleiRepoResponse[]> => {
-    const response = await api.get<PaginatedResponse<NucleiRepoResponse>>(BASE_URL)
+    // 仓库数量通常不多，获取全部
+    const response = await api.get<PaginatedResponse<NucleiRepoResponse>>(BASE_URL, {
+      params: { pageSize: 1000 }
+    })
     // 后端返回分页格式，取 results 数组
     return response.data.results
   },
