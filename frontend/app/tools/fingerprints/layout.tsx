@@ -3,11 +3,24 @@
 import React from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Fingerprint } from "lucide-react"
+import { Fingerprint, HelpCircle } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useFingerprintStats } from "@/hooks/use-fingerprints"
+
+// 指纹库说明
+const FINGERPRINT_HELP = `
+• EHole: 红队重点资产识别工具，支持关键词、favicon hash 等方式识别
+• Goby: 攻击面测绘工具，包含大量 Web 应用和设备指纹（即将支持）
+• Wappalyzer: 浏览器扩展，可识别网站使用的技术栈（即将支持）
+`.trim()
 
 /**
  * 指纹管理布局
@@ -75,40 +88,53 @@ export default function FingerprintsLayout({
 
       {/* Tabs 导航 */}
       <div className="flex items-center justify-between px-4 lg:px-6">
-        <Tabs value={getActiveTab()} className="w-full">
-          <TabsList>
-            <TabsTrigger value="ehole" asChild>
-              <Link href={tabPaths.ehole} className="flex items-center gap-0.5">
-                EHole
-                {counts.ehole > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 rounded-full px-1.5 text-xs">
-                    {counts.ehole}
-                  </Badge>
-                )}
-              </Link>
-            </TabsTrigger>
-            <TabsTrigger value="goby" asChild disabled>
-              <Link href={tabPaths.goby} className="flex items-center gap-0.5 opacity-50 cursor-not-allowed">
-                Goby
-                {counts.goby > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 rounded-full px-1.5 text-xs">
-                    {counts.goby}
-                  </Badge>
-                )}
-              </Link>
-            </TabsTrigger>
-            <TabsTrigger value="wappalyzer" asChild disabled>
-              <Link href={tabPaths.wappalyzer} className="flex items-center gap-0.5 opacity-50 cursor-not-allowed">
-                Wappalyzer
-                {counts.wappalyzer > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 rounded-full px-1.5 text-xs">
-                    {counts.wappalyzer}
-                  </Badge>
-                )}
-              </Link>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-3">
+          <Tabs value={getActiveTab()} className="w-full">
+            <TabsList>
+              <TabsTrigger value="ehole" asChild>
+                <Link href={tabPaths.ehole} className="flex items-center gap-0.5">
+                  EHole
+                  {counts.ehole > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 rounded-full px-1.5 text-xs">
+                      {counts.ehole}
+                    </Badge>
+                  )}
+                </Link>
+              </TabsTrigger>
+              <TabsTrigger value="goby" asChild disabled>
+                <Link href={tabPaths.goby} className="flex items-center gap-0.5 opacity-50 cursor-not-allowed">
+                  Goby
+                  {counts.goby > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 rounded-full px-1.5 text-xs">
+                      {counts.goby}
+                    </Badge>
+                  )}
+                </Link>
+              </TabsTrigger>
+              <TabsTrigger value="wappalyzer" asChild disabled>
+                <Link href={tabPaths.wappalyzer} className="flex items-center gap-0.5 opacity-50 cursor-not-allowed">
+                  Wappalyzer
+                  {counts.wappalyzer > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 h-5 min-w-5 rounded-full px-1.5 text-xs">
+                      {counts.wappalyzer}
+                    </Badge>
+                  )}
+                </Link>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-sm whitespace-pre-line">
+                {FINGERPRINT_HELP}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       {/* 子页面内容 */}
