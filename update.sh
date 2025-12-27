@@ -83,6 +83,20 @@ fi
 echo -e "${BOLD}${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
+# 测试性功能警告
+echo -e "${BOLD}${YELLOW}[!] 警告：此功能为测试性功能，可能会导致升级失败${NC}"
+echo -e "${YELLOW}    建议运行 ./uninstall.sh 后重新执行 ./install.sh 进行全新安装${NC}"
+echo ""
+echo -n -e "${YELLOW}是否继续更新？(y/N) ${NC}"
+read -r ans_continue
+ans_continue=${ans_continue:-N}
+
+if [[ ! $ans_continue =~ ^[Yy]$ ]]; then
+    echo -e "${CYAN}已取消更新。${NC}"
+    exit 0
+fi
+echo ""
+
 echo -e "${CYAN}[1/4]${NC} 停止服务..."
 ./stop.sh 2>&1 | sed 's/^/    /'
 
