@@ -48,8 +48,12 @@ from typing import Optional, Dict, Any
 
 import paramiko
 from django.conf import settings
+from django.db.models import Count, Q
 
 from apps.engine.models import WorkerNode
+from apps.scan.models import Scan
+from apps.common.definitions import ScanStatus
+from apps.scan.services.scan_recovery_service import reclaim_stuck_initiated_scans
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +83,43 @@ class TaskDistributor:
         # 统一使用 /opt/xingrin 下的路径
         self.logs_mount = "/opt/xingrin/logs"
         self.submit_interval = getattr(settings, 'TASK_SUBMIT_INTERVAL', 5)
+        self.max_concurrent_scans_global = getattr(settings, 'MAX_CONCURRENT_SCANS_GLOBAL', 0)
+        self.max_concurrent_scans_per_worker = getattr(settings, 'MAX_CONCURRENT_SCANS_PER_WORKER', 0)
+        self.capacity_check_interval = getattr(settings, 'DISPATCH_CAPACITY_CHECK_INTERVAL', 10)
+        self.capacity_max_retries = getattr(settings, 'DISPATCH_CAPACITY_MAX_RETRIES', 120)
+        self.initiated_stuck_timeout_seconds = int(
+            getattr(settings, 'DISPATCH_INITIATED_STUCK_TIMEOUT_SECONDS', 900)
+        )
+        self.task_container_cpus = getattr(settings, 'TASK_CONTAINER_CPUS', '').strip()
+        self.task_container_memory = getattr(settings, 'TASK_CONTAINER_MEMORY', '').strip()
+        self.task_container_memory_swap = getattr(settings, 'TASK_CONTAINER_MEMORY_SWAP', '').strip()
+
+    def _get_inflight_scan_queryset(self):
+        """
+        获取“已提交或正在运行”的扫描任务。
+
+        说明：
+        - running: 正在执行
+        - initiated + worker 非空: 已提交到 Worker，等待 Flow on_running 回调切换状态
+        """
+        return Scan.objects.filter(
+            Q(status=ScanStatus.RUNNING) |
+            (Q(status=ScanStatus.INITIATED) & Q(worker_id__isnull=False))
+        )
+
+    def _get_global_inflight_count(self) -> int:
+        """获取全局并发扫描数（已提交+运行中）"""
+        return self._get_inflight_scan_queryset().count()
+
+    def _get_worker_inflight_count(self, worker_id: int) -> int:
+        """获取单个 Worker 并发扫描数（已提交+运行中）"""
+        return self._get_inflight_scan_queryset().filter(worker_id=worker_id).count()
+
+    def _is_global_capacity_available(self) -> bool:
+        """检查是否有全局并发槽位（0 表示不限制）"""
+        if self.max_concurrent_scans_global <= 0:
+            return True
+        return self._get_global_inflight_count() < self.max_concurrent_scans_global
     
     def get_online_workers(self) -> list[WorkerNode]:
         """
@@ -124,12 +165,31 @@ class TaskDistributor:
         # 从 Redis 批量获取负载数据
         worker_ids = [w.id for w in workers]
         loads = worker_load_service.get_all_loads(worker_ids)
+        worker_inflight_counts = {
+            row["worker_id"]: row["total"]
+            for row in self._get_inflight_scan_queryset()
+            .filter(worker_id__in=worker_ids)
+            .values("worker_id")
+            .annotate(total=Count("id"))
+        }
         
         # 计算每个 Worker 的负载分数
         scored_workers = []
         high_load_workers = []  # 高负载 Worker（降级备选）
         
         for worker in workers:
+            # 先检查每节点并发上限
+            if self.max_concurrent_scans_per_worker > 0:
+                inflight = worker_inflight_counts.get(worker.id, 0)
+                if inflight >= self.max_concurrent_scans_per_worker:
+                    logger.info(
+                        "Worker %s 达到并发上限，跳过分配 (inflight=%d, limit=%d)",
+                        worker.name,
+                        inflight,
+                        self.max_concurrent_scans_per_worker
+                    )
+                    continue
+
             # 从 Redis 获取负载数据
             load = loads.get(worker.id)
             if not load:
@@ -213,7 +273,6 @@ class TaskDistributor:
                         "等待超时，强制分发到高负载 Worker: %s (CPU: %.1f%%, MEM: %.1f%%)",
                         best_worker.name, cpu, mem
                     )
-                    return best_worker
                     return best_worker
             else:
                 logger.warning("没有可用的 Worker")
@@ -315,8 +374,17 @@ class TaskDistributor:
         # OOM 优先级：--oom-score-adj=1000 让 Worker 在内存不足时优先被杀
         # - 范围 -1000 到 1000，值越大越容易被 OOM Killer 选中
         # - 保护 server/nginx/frontend 等核心服务，确保 Web 界面可用
+        resource_limits = []
+        if self.task_container_cpus:
+            resource_limits.append(f"--cpus={shlex.quote(self.task_container_cpus)}")
+        if self.task_container_memory:
+            resource_limits.append(f"--memory={shlex.quote(self.task_container_memory)}")
+        if self.task_container_memory_swap:
+            resource_limits.append(f"--memory-swap={shlex.quote(self.task_container_memory_swap)}")
+
         cmd = f'''docker run --rm -d --pull=missing {network_arg} \\
             --oom-score-adj=1000 \\
+            {' '.join(resource_limits)} \\
             {' '.join(env_vars)} \\
             {' '.join(volumes)} \\
             {self.docker_image} \\
@@ -482,17 +550,68 @@ class TaskDistributor:
         logger.info("  docker_image: %s", self.docker_image)
         logger.info("="*60)
         
-        # 1. 等待提交间隔（后台线程执行，不阻塞 API）
-        logger.info("等待提交间隔...")
-        self._wait_for_submit_interval()
-        logger.info("提交间隔等待完成")
-        
-        # 2. 选择最佳 Worker
-        worker = self.select_best_worker()
+        # 1. 容量等待 + 提交节流（后台线程执行，不阻塞 API）
+        worker = None
+        retry = 0
+        unlimited = self.capacity_max_retries <= 0
+        while unlimited or retry < self.capacity_max_retries:
+            self._wait_for_submit_interval()
+
+            if not self._is_global_capacity_available():
+                reclaimed = reclaim_stuck_initiated_scans(self.initiated_stuck_timeout_seconds)
+                if reclaimed > 0:
+                    logger.info("检测到全局并发已满，已回收 %d 个僵尸占位任务，立即重试分发", reclaimed)
+                    continue
+                global_inflight = self._get_global_inflight_count()
+                logger.warning(
+                    "全局并发已满，等待重试... (inflight=%d, limit=%d, retry=%d/%s)",
+                    global_inflight,
+                    self.max_concurrent_scans_global,
+                    retry + 1,
+                    "∞" if unlimited else self.capacity_max_retries
+                )
+                time.sleep(self.capacity_check_interval)
+                retry += 1
+                continue
+
+            worker = self.select_best_worker()
+            if not worker:
+                reclaimed = reclaim_stuck_initiated_scans(self.initiated_stuck_timeout_seconds)
+                if reclaimed > 0:
+                    logger.info("暂无可用 Worker 时回收到 %d 个僵尸占位任务，立即重试分发", reclaimed)
+                    continue
+                logger.warning(
+                    "暂无可用 Worker，等待重试... (retry=%d/%s)",
+                    retry + 1,
+                    "∞" if unlimited else self.capacity_max_retries
+                )
+                time.sleep(self.capacity_check_interval)
+                retry += 1
+                continue
+
+            # 双重检查：避免并发竞争导致瞬时超配
+            if self.max_concurrent_scans_per_worker > 0:
+                worker_inflight = self._get_worker_inflight_count(worker.id)
+                if worker_inflight >= self.max_concurrent_scans_per_worker:
+                    logger.warning(
+                        "Worker %s 在提交前达到并发上限，等待重试... (inflight=%d, limit=%d, retry=%d/%s)",
+                        worker.name,
+                        worker_inflight,
+                        self.max_concurrent_scans_per_worker,
+                        retry + 1,
+                        "∞" if unlimited else self.capacity_max_retries
+                    )
+                    worker = None
+                    time.sleep(self.capacity_check_interval)
+                    retry += 1
+                    continue
+
+            break
+
         if not worker:
-            return False, "没有可用的 Worker", None, None
+            return False, "等待可用 Worker 超时（可调大 DISPATCH_CAPACITY_MAX_RETRIES，0 表示无限等待）", None, None
         
-        # 3. 构建 docker run 命令
+        # 2. 构建 docker run 命令
         script_args = {
             'scan_id': scan_id,
             'target_name': target_name,
@@ -514,7 +633,7 @@ class TaskDistributor:
             worker.name, scan_id, target_name
         )
         
-        # 4. 执行 docker run（本地直接执行，远程通过 SSH）
+        # 3. 执行 docker run（本地直接执行，远程通过 SSH）
         success, output = self._execute_docker_command(worker, docker_cmd)
         
         if success:
@@ -680,5 +799,3 @@ def get_task_distributor() -> TaskDistributor:
     if _distributor is None:
         _distributor = TaskDistributor()
     return _distributor
-
-

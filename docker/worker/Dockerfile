@@ -2,8 +2,20 @@
 FROM golang:1.24 AS go-builder
 
 ENV GOPROXY=https://goproxy.cn,direct
+ARG GITHUB_PROXY_PREFIX=https://gh-proxy.org/https://github.com
 # Naabu 需要 CGO 和 libpcap
 ENV CGO_ENABLED=1
+
+# 使用中国 Debian 镜像源
+RUN set -eux; \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+      sed -i 's|http://deb.debian.org/debian|http://mirrors.aliyun.com/debian|g; s|http://security.debian.org/debian-security|http://mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list.d/debian.sources; \
+      sed -i 's|https://deb.debian.org/debian|http://mirrors.aliyun.com/debian|g; s|https://security.debian.org/debian-security|http://mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list.d/debian.sources; \
+    fi; \
+    if [ -f /etc/apt/sources.list ]; then \
+      sed -i 's|http://deb.debian.org/debian|http://mirrors.aliyun.com/debian|g; s|http://security.debian.org/debian-security|http://mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list; \
+      sed -i 's|https://deb.debian.org/debian|http://mirrors.aliyun.com/debian|g; s|https://security.debian.org/debian-security|http://mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list; \
+    fi
 
 # 安装编译依赖（libpcap-dev 用于 naabu，git/build-essential 用于编译 massdns）
 RUN apt-get update && apt-get install -y \
@@ -11,6 +23,9 @@ RUN apt-get update && apt-get install -y \
     git \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# GitHub 克隆加速（阿里云等境外网络环境更稳）
+RUN git config --global url."${GITHUB_PROXY_PREFIX}/".insteadOf "https://github.com/"
 
 # 安装 massdns（puredns 依赖）
 RUN git clone https://github.com/blechschmidt/massdns.git /tmp/massdns && \
@@ -41,32 +56,55 @@ ENV DEBIAN_FRONTEND=noninteractive
 # 设置工作目录
 WORKDIR /app
 
-# 1. 安装基础工具和 Python
-# 注意：ARM64 使用 ports.ubuntu.com，可能存在镜像同步延迟，需要重试机制
-RUN apt-get update && \
+# 使用中国 Ubuntu 镜像源（按架构重写 sources.list，避免 deb822 改写失败）
+RUN set -eux; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+      arm64|armhf|ppc64el|s390x|riscv64) mirror_base="http://mirrors.aliyun.com/ubuntu-ports" ;; \
+      *) mirror_base="http://mirrors.aliyun.com/ubuntu" ;; \
+    esac; \
+    rm -f /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list; \
+    printf '%s\n' \
+      "deb ${mirror_base} noble main restricted universe multiverse" \
+      "deb ${mirror_base} noble-updates main restricted universe multiverse" \
+      "deb ${mirror_base} noble-backports main restricted universe multiverse" \
+      "deb ${mirror_base} noble-security main restricted universe multiverse" \
+      > /etc/apt/sources.list
+
+# 使用中国 PyPI 镜像（pip + pipx + uv）
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+    PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn \
+    UV_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 1. 安装基础工具和 Python（带重试，避免镜像瞬时同步抖动）
+RUN set -eux; \
+    for i in 1 2 3; do \
+      apt-get update && apt-cache show ca-certificates >/dev/null 2>&1 && break; \
+      echo "apt-get update failed, retry: $i"; \
+      [ "$i" -eq 3 ] && exit 1; \
+      rm -rf /var/lib/apt/lists/*; \
+      sleep 5; \
+    done; \
     apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-venv \
-    pipx \
-    git \
-    curl \
-    wget \
-    unzip \
-    jq \
-    tmux \
-    nmap \
-    masscan \
-    libpcap-dev \
-    ca-certificates \
-    fonts-liberation \
-    libnss3 \
-    libxss1 \
-    libasound2t64 \
-    || (rm -rf /var/lib/apt/lists/* && apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-venv pipx git curl wget unzip jq tmux nmap masscan libpcap-dev \
-    ca-certificates fonts-liberation libnss3 libxss1 libasound2t64) \
-    && rm -rf /var/lib/apt/lists/*
+      python3 \
+      python3-pip \
+      python3-venv \
+      pipx \
+      git \
+      curl \
+      wget \
+      unzip \
+      jq \
+      tmux \
+      nmap \
+      masscan \
+      libpcap-dev \
+      ca-certificates \
+      fonts-liberation \
+      libnss3 \
+      libxss1 \
+      libasound2t64; \
+    rm -rf /var/lib/apt/lists/*
 
 # 安装 Chromium（通过 Playwright 安装，支持 ARM64 和 AMD64）
 # Ubuntu 24.04 的 chromium-browser 是 snap 过渡包，Docker 中不可用
@@ -95,6 +133,8 @@ RUN pipx install uro && \
     pipx install dnsgen
 
 # 3. 安装 Sublist3r（Python 脚本工具，放在 /usr/local/share 标准目录）
+ARG GITHUB_PROXY_PREFIX=https://gh-proxy.org/https://github.com
+RUN git config --global url."${GITHUB_PROXY_PREFIX}/".insteadOf "https://github.com/"
 RUN git clone https://github.com/aboul3la/Sublist3r.git /usr/local/share/Sublist3r && \
     pip3 install --no-cache-dir -r /usr/local/share/Sublist3r/requirements.txt --break-system-packages
 

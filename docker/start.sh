@@ -27,7 +27,7 @@ done
 # 选择 compose 文件
 if [ "$DEV_MODE" = true ]; then
     COMPOSE_FILE="docker-compose.dev.yml"
-    echo -e "${YELLOW}[MODE]${NC} 开发模式 - 本地构建镜像"
+    echo -e "${YELLOW}[MODE]${NC} 开发模式 - 本地构建镜像（PostgreSQL 使用远程镜像）"
 else
     COMPOSE_FILE="docker-compose.yml"
     echo -e "${GREEN}[MODE]${NC} 生产模式 - 使用 Docker Hub 镜像"

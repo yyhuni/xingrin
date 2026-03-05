@@ -357,6 +357,32 @@ else:
 # 应大于心跳间隔（3秒），确保负载数据已更新
 TASK_SUBMIT_INTERVAL = int(os.getenv('TASK_SUBMIT_INTERVAL', '6'))
 
+# 扫描任务并发上限（0 表示不限制）
+# - 全局上限：所有 Worker 同时运行的扫描任务总数
+# - 节点上限：单个 Worker 同时运行的扫描任务数
+MAX_CONCURRENT_SCANS_GLOBAL = int(os.getenv('MAX_CONCURRENT_SCANS_GLOBAL', '0'))
+MAX_CONCURRENT_SCANS_PER_WORKER = int(os.getenv('MAX_CONCURRENT_SCANS_PER_WORKER', '0'))
+
+# 调度容量等待配置
+# 当达到并发上限或暂无可用 Worker 时，分发器会按间隔重试，避免直接失败
+DISPATCH_CAPACITY_CHECK_INTERVAL = int(os.getenv('DISPATCH_CAPACITY_CHECK_INTERVAL', '10'))
+DISPATCH_CAPACITY_MAX_RETRIES = int(os.getenv('DISPATCH_CAPACITY_MAX_RETRIES', '120'))
+# initiated 僵尸占位回收阈值（秒）
+# 含义：status=initiated 且 worker_id 非空并超过该时间，会自动释放 worker_id 防止并发槽位被长期占用
+# 0 或负数表示禁用自动回收
+DISPATCH_INITIATED_STUCK_TIMEOUT_SECONDS = int(
+    os.getenv('DISPATCH_INITIATED_STUCK_TIMEOUT_SECONDS', '900')
+)
+
+# 扫描容器资源限制（空字符串表示不限制）
+# 示例：
+# TASK_CONTAINER_CPUS=1.5
+# TASK_CONTAINER_MEMORY=2g
+# TASK_CONTAINER_MEMORY_SWAP=2g
+TASK_CONTAINER_CPUS = os.getenv('TASK_CONTAINER_CPUS', '').strip()
+TASK_CONTAINER_MEMORY = os.getenv('TASK_CONTAINER_MEMORY', '').strip()
+TASK_CONTAINER_MEMORY_SWAP = os.getenv('TASK_CONTAINER_MEMORY_SWAP', '').strip()
+
 # 本地 Worker Docker 网络名称（与 docker-compose.yml 中定义的一致）
 DOCKER_NETWORK_NAME = os.getenv('DOCKER_NETWORK_NAME', 'xingrin_network')
 
