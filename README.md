@@ -322,7 +322,7 @@ sudo ./uninstall.sh
 
 如果这个项目对你有帮助，请给一个 Star 支持一下！
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yyhuni/xingrin&type=Date)](https://star-history.com/#yyhuni/xingrin&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=yyhuni/xingrin&type=Date)](https://star-history.dera.page/#yyhuni/xingrin&Date)
 
 ## 许可证
 
